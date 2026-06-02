@@ -64,16 +64,11 @@ Learn without losing context.
 ## Screenshots
 
 ### Floating Video Player
-
-(Add screenshot here)
+[alt text](image.png)
 
 ### Study Workspace
 
-(Add screenshot here)
-
-### Notes and Bookmarks
-
-(Add screenshot here)
+![alt text](image-1.png)
 
 ---
 
