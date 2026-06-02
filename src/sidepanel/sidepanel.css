@@ -7,4 +7,5 @@ body {
   color: #ffffff;
   height: 100vh;
   overflow: hidden;
+  zoom: 1.15; /* Programmatic zoom-in for enhanced readability */
 }
