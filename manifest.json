@@ -86,14 +86,6 @@
     "play-pause": {
       "suggested_key": { "default": "Alt+Space" },
       "description": "Play / Pause"
-    },
-    "skip-forward": {
-      "suggested_key": { "default": "Alt+Right" },
-      "description": "Skip Forward 10s"
-    },
-    "skip-back": {
-      "suggested_key": { "default": "Alt+Left" },
-      "description": "Skip Backward 10s"
     }
   },
 
