@@ -112,7 +112,8 @@ npm run build
 * The video will immediately enter native Picture-in-Picture mode!
 
 ### 2. Opening the Study Workspace
-* Press **`Ctrl + Shift + Y`** (or open the Chrome Side Panel menu and select **FloatTube AI**).
+* Click **💼 Open Study Workspace** directly in the extension popup menu.
+* Alternatively, press **`Ctrl + Shift + Y`** (or open the Chrome Side Panel menu and select **FloatTube AI**).
 * The side panel will open next to your active tab and automatically sync with the video's timeline.
 * Switch between the **Notes**, **Transcript**, and **Workspace** tabs inside the side panel to study.
 
@@ -136,8 +137,7 @@ FloatTube AI includes native browser hotkeys. You can customize these shortcuts 
 |---|---|---|
 | **Toggle Float Mode** | `Alt + P` | Opens or closes the native Picture-in-Picture window |
 | **Play / Pause** | `Alt + Space` | Play or pause video playback |
-| **Skip Forward 10s** | `Alt + →` | Seek video forward by 10 seconds |
-| **Skip Backward 10s** | `Alt + ←` | Seek video backward by 10 seconds |
+| **Open Study Workspace** | `Ctrl + Shift + Y` | Open the study notes and transcript side panel |
 
 ---
 

@@ -294,40 +294,34 @@ function MainPanel({ settings, isFloating, siteColor, detectedSite, onToggleFloa
           value={settings?.aiEnabled ?? false}
           onChange={() => onToggleSetting('aiEnabled')}
         />
-      </div>
-
-      {/* Keyboard shortcuts hint */}
-      <div style={{
-        marginTop: 16,
-        background: 'rgba(255,255,255,0.04)',
-        borderRadius: 10, padding: '10px 12px',
-        fontSize: 11, color: '#555',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <div style={{ color: '#777', fontWeight: 600 }}>KEYBOARD SHORTCUTS</div>
-          <button
-            onClick={() => {
-              if (typeof chrome !== 'undefined' && chrome.tabs) {
-                chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
+        <div
+          onClick={async () => {
+            if (typeof chrome !== 'undefined' && chrome.sidePanel) {
+              try {
+                const window = await chrome.windows.getCurrent()
+                if (window.id !== undefined) {
+                  chrome.sidePanel.open({ windowId: window.id })
+                }
+              } catch (e) {
+                console.error('[FloatTube] Failed to open side panel:', e)
               }
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#6366F1',
-              fontSize: 10,
-              cursor: 'pointer',
-              padding: 0,
-              fontWeight: 500,
-              textDecoration: 'underline',
-            }}
-          >
-            Configure
-          </button>
+            }
+          }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            cursor: 'pointer', padding: '10px 12px',
+            background: 'rgba(99, 102, 241, 0.08)', borderRadius: 10,
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            transition: 'background 0.15s',
+            marginTop: 4
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#818CF8' }}>💼 Open Study Workspace</div>
+            <div style={{ fontSize: 10, color: '#777', marginTop: 2 }}>Launch notes, bookmarks & transcript side panel</div>
+          </div>
+          <div style={{ color: '#818CF8', fontSize: 14, fontWeight: 'bold' }}>➔</div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}><span>Toggle Float</span><kbd style={KBD}>Alt+P</kbd></div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}><span>Play/Pause</span><kbd style={KBD}>Alt+Space</kbd></div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Skip ±10s</span><kbd style={KBD}>Alt+←/→</kbd></div>
       </div>
     </div>
   )
