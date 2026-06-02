@@ -11,6 +11,7 @@ body {
   background: #0f0f13;
   color: #ffffff;
   width: 320px;
-  min-height: 480px;
-  overflow: hidden;
+  height: 480px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }

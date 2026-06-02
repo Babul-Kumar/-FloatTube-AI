@@ -12,7 +12,7 @@ Unlike standard Picture-in-Picture players, FloatTube AI integrates a feature-ri
 3. [Prerequisites](#-prerequisites)
 4. [Step-by-Step Installation Guide](#-step-by-step-installation-guide)
 5. [How to Use FloatTube AI](#-how-to-use-floattube-ai)
-6. [Keyboard Shortcuts Cheatsheet](#-keyboard-shortcuts-cheatsheet)
+6. [Keyboard Shortcuts Configuration](#-keyboard-shortcuts-configuration)
 7. [Project Folder Layout](#-project-folder-layout)
 8. [Technical Architecture & Development Guide](#-technical-architecture--development-guide)
 9. [Troubleshooting & FAQs](#-troubleshooting--faqs)
@@ -131,15 +131,11 @@ npm run build
 
 ## ⌨️ Keyboard Shortcuts Configuration
 
-FloatTube AI supports native browser hotkeys for seamless control. Since these are fully customizable by the user, you can configure your own preferred key combinations at any time:
+FloatTube AI supports customizable browser hotkeys for seamless control. You can configure your own preferred key combinations at any time:
 
 1. Open Google Chrome or Brave.
 2. Navigate to `chrome://extensions/shortcuts` (or `brave://settings/extensions/shortcuts`).
-3. Find **FloatTube AI** in the list.
-4. Set your preferred shortcuts for:
-   * **Open FloatTube AI Side Panel** (opens/closes the notes and transcript workspace)
-   * **Toggle Float Mode** (opens/closes the floating video player)
-   * **Play / Pause** (toggles video playback)
+3. Find **FloatTube AI** in the list and assign your preferred key combinations.
 
 ---
 
