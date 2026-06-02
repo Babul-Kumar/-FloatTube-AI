@@ -3,13 +3,16 @@
 let lastVideoTabId: number | null = null
 
 chrome.commands.onCommand.addListener(async (command) => {
+  console.log('[FloatTube AI] Service worker received shortcut command:', command)
+  
   // If we have a tracked video tab, send the command there first
   if (lastVideoTabId !== null) {
     try {
       await chrome.tabs.sendMessage(lastVideoTabId, { type: 'COMMAND', command })
+      console.log('[FloatTube AI] Sent command to tracked video tab:', lastVideoTabId)
       return
     } catch (e) {
-      // Tab was closed or not responding, clear tracked id and fall back
+      console.warn('[FloatTube AI] Tracked tab not responding, clearing:', lastVideoTabId, e)
       lastVideoTabId = null
     }
   }
@@ -17,7 +20,12 @@ chrome.commands.onCommand.addListener(async (command) => {
   // Forward command to active tab
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   if (tab?.id) {
-    chrome.tabs.sendMessage(tab.id, { type: 'COMMAND', command })
+    try {
+      await chrome.tabs.sendMessage(tab.id, { type: 'COMMAND', command })
+      console.log('[FloatTube AI] Sent command to active tab:', tab.id)
+    } catch (e) {
+      console.warn('[FloatTube AI] Failed to send command to active tab:', tab.id, e)
+    }
   }
 })
 
@@ -67,7 +75,46 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 })
 
-// On extension install
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('[FloatTube AI] Extension installed')
+// On extension install / reload / update
+chrome.runtime.onInstalled.addListener(async () => {
+  console.log('[FloatTube AI] Extension installed/reloaded')
+
+  // Automatically inject content scripts into any already open video tabs
+  try {
+    const manifest = chrome.runtime.getManifest()
+    const contentScripts = manifest.content_scripts?.[0]
+    if (!contentScripts) return
+
+    const matches = contentScripts.matches
+    const jsFiles = contentScripts.js
+    const cssFiles = contentScripts.css
+
+    if (!jsFiles || !matches) return
+
+    const tabs = await chrome.tabs.query({ url: matches })
+    for (const tab of tabs) {
+      if (tab.id) {
+        try {
+          // Inject content JS
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: jsFiles
+          })
+          // Inject content CSS
+          if (cssFiles) {
+            await chrome.scripting.insertCSS({
+              target: { tabId: tab.id },
+              files: cssFiles
+            })
+          }
+          console.log(`[FloatTube AI] Auto-injected content script into existing tab: ${tab.id}`)
+        } catch (err) {
+          // Suppress errors for restricted pages
+          console.warn(`[FloatTube AI] Could not auto-inject tab ${tab.id}:`, err)
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[FloatTube AI] Error during auto-injection:', err)
+  }
 })

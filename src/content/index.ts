@@ -100,22 +100,29 @@ if (!(window as any).__floattube_injected) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.type) {
       case 'COMMAND': {
+        console.log('[FloatTube AI] Content script received command:', message.command)
         if (initialized && provider) {
           if (message.command === 'play') {
             provider.play()
           } else if (message.command === 'pause') {
             provider.pause()
           } else {
+            console.log('[FloatTube AI] Executing command synchronously:', message.command)
             handleCommand(message.command)
           }
         } else {
+          console.log('[FloatTube AI] Content script not initialized. Initializing for command:', message.command)
           ensureInitialized().then((ok) => {
-            if (!ok || !provider) return
+            if (!ok || !provider) {
+              console.warn('[FloatTube AI] Failed to initialize for command:', message.command)
+              return
+            }
             if (message.command === 'play') {
               provider.play()
             } else if (message.command === 'pause') {
               provider.pause()
             } else {
+              console.log('[FloatTube AI] Executing command asynchronously:', message.command)
               handleCommand(message.command)
             }
           })
