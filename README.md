@@ -1,258 +1,406 @@
-# FloatTube AI – Smart Floating Video Experience
+# FloatTube AI
 
-FloatTube AI is a premium Google Chrome Extension designed to revolutionize your video learning, studying, and working workflows. It allows you to continue watching YouTube, Udemy, Coursera, Netflix, or any HTML5 video in a native floating Picture-in-Picture window while you write code, browse other tabs, or take notes inside a dedicated workspace.
+FloatTube AI is a Chrome extension for watching videos in Picture-in-Picture while keeping a study workspace beside your browser. It combines native floating playback with a side panel for notes, transcripts, bookmarks, and quick search.
 
-Unlike standard Picture-in-Picture players, FloatTube AI integrates a feature-rich study suite featuring synced transcripts, a markdown note-taking editor, timestamped bookmarks, distraction-free focus modes, and a dedicated Chrome Side Panel workspace.
+This README is written for first-time users. It explains what the extension does today, how to install it, how to use each screen, and where the current limitations are.
 
----
+## What FloatTube AI does
 
-## 📖 Table of Contents
-1. [Key Features](#-key-features)
-2. [Upcoming Features – AI Pack (Coming Soon)](#-upcoming-features--ai-pack-coming-soon)
-3. [Prerequisites](#-prerequisites)
-4. [Step-by-Step Installation Guide](#-step-by-step-installation-guide)
-5. [How to Use FloatTube AI](#-how-to-use-floattube-ai)
-6. [Keyboard Shortcuts Configuration](#-keyboard-shortcuts-configuration)
-7. [Project Folder Layout](#-project-folder-layout)
-8. [Technical Architecture & Development Guide](#-technical-architecture--development-guide)
-9. [Troubleshooting & FAQs](#-troubleshooting--faqs)
-10. [Author](#-author)
+- Starts native Chrome Picture-in-Picture from a supported video page.
+- Opens a Chrome side panel workspace with Notes, Transcript, Workspace, and AI tabs.
+- Saves timestamped notes per video and exports them as Markdown or PDF.
+- Saves timestamped bookmarks per video.
+- Lets you click transcript lines, note timestamps, and bookmark timestamps to jump the video.
+- Offers auto-float triggers such as tab switch, window blur, and page leave.
+- Includes a Focus Mode toggle for reducing distractions on supported learning sites.
 
----
+## What is fully usable right now
 
-## 🚀 Key Features
+- Popup detection for major supported sites.
+- Native Picture-in-Picture start and stop.
+- Side panel notes.
+- Side panel transcript search and timestamp seeking.
+- Side panel bookmarks.
+- Side panel close button.
+- Options page for core setup and shortcut access.
 
-### 📺 Direct Native Picture-in-Picture
-* **Instant Native Float**: Clicking **"Start Floating"** in the popup or pressing your custom shortcut directly launches Chrome's native Picture-in-Picture (PiP) window. This ensures zero delay, high performance, and zero black-screen or CORS issues.
-* **Always-On-Top Viewing**: The native PiP window floats on top of all application windows, including non-browser windows (like your IDE or text editor).
-* **Auto-Float on Tab Change**: Automatically enters Picture-in-Picture when you switch tabs, and docks back to the original page when you return (when Chrome's native auto-PiP flag is enabled).
+## What is visible but not fully implemented yet
 
-### 📝 Chrome Side Panel Study Workspace
-* **Real-Time Synced Transcript**: Captures video captions (supporting YouTube TimedText API + WebVTT fallback reader) and auto-scrolls to highlight the active line. Click any line to skip the video directly to that sentence.
-* **Timestamp-Linked Notes**: Type study notes on the fly. The editor automatically captures the video's active timestamp, generating a clickable link (e.g. `[02:14]`) so you can return to that moment with a single click.
-* **Notes Exports**: Save your notes as structured Markdown (`.md`) or print-ready PDF files for offline review.
-* **Interactive Bookmarks**: Create custom-labeled bookmarks at key video highlights.
-* **Inline Web Search**: Look up definitions, docs, or code snippets inside the mini search panel without opening another tab.
+The current UI includes a few settings that are still groundwork for future improvements. A new user should know this up front:
 
-### 🧹 Productivity Boosters
-* **Distraction-Free Focus Mode**: One-click toggling to hide recommendations columns, comments lists, autoplay sections, end-screen cards, headers, and Shorts on YouTube and Udemy.
+- AI tab: shown in the side panel, but still a placeholder.
+- AI enable toggle and Gemini API key: settings can be saved, but no live AI summaries or chat run yet.
+- Theme setting: saved in options, but the current UI is still effectively dark-styled.
+- Default window size, default position, show transcript, and remember position: present in settings, but not all of them are fully applied to the current native PiP workflow.
+- The options page mentions extra shortcut ideas like skip forward and skip back, but Chrome currently registers only the shortcuts defined in `manifest.json`.
 
----
+## Supported sites
 
-## ✨ Upcoming Features – AI Pack (Coming Soon)
+FloatTube AI is built primarily for these sites:
 
-We are working on integrating advanced AI capabilities to create the ultimate study companion:
+- YouTube
+- Udemy
+- Coursera
+- Skillshare
+- Netflix
+- Prime Video / Amazon Video
 
-* **Gemini AI Video Summarization** *(Coming Soon)*: Generate structured summaries of long lectures, tutorials, and meetings in seconds using Gemini 2.5 Flash.
-* **AI Chat with Transcript Context** *(Coming Soon)*: Ask questions about the video and get answers directly referenced from the video's transcript.
-* **Smart Study Flashcards** *(Coming Soon)*: Automatically extract key takeaways and generate flashcards for study review.
-* **Comprehension Quizzes** *(Coming Soon)*: Test your understanding with auto-generated multiple-choice quizzes based on the video content.
-* **Pomodoro Focus Timer** *(Coming Soon)*: Track study intervals with an integrated Pomodoro clock directly inside your side panel.
-* **Visual Screenshot Bookmarks** *(Coming Soon)*: Capture and attach video frame screenshots to your bookmarks using the Canvas API.
+There is also a generic HTML5 video fallback. In practice, that means:
 
----
+- If a page has a normal HTML5 `<video>` element, the extension may still work when you launch it from the popup on the active tab.
+- Generic pages are less reliable than the named integrations above.
 
-## 📋 Prerequisites
+## Feature support by site
 
-Before installing the extension, make sure you have:
-1. The **Google Chrome** browser installed on your computer.
-2. **Node.js** installed (version 18 or higher is recommended).
-   * Verify your installation by running these commands:
-     ```bash
-     node -v
-     npm -v
-     ```
-   * Download Node.js from the official site: [https://nodejs.org/](https://nodejs.org/)
+| Site or page | Floating video | Focus Mode | Transcript support |
+| --- | --- | --- | --- |
+| YouTube | Yes | Yes | Best support, including YouTube caption fetch when available |
+| Udemy | Yes | Yes | Works when captions or subtitle tracks are available |
+| Coursera | Yes | No | Works when caption tracks are available |
+| Skillshare | Yes | No | Works when caption tracks are available |
+| Netflix | Browser and DRM may restrict behavior | No | Usually limited |
+| Prime Video / Amazon Video | Browser and DRM may restrict behavior | No | Usually limited |
+| Other HTML5 video pages | Sometimes | No | Only if the page exposes subtitle or caption tracks |
 
----
+## Before you install
 
-## 📥 Step-by-Step Installation Guide
+You need:
 
-Follow these steps to build and load the extension into Google Chrome:
+- Google Chrome or another Chromium-based browser with side panel support.
+- Node.js 18 or newer.
+- npm.
 
-### Step 1: Download the Project
-Save the project folder (`extension2.0`) to a folder on your computer.
+Check your versions:
 
-### Step 2: Open Terminal / Command Prompt
-Open **Command Prompt** (on Windows) or **Terminal** (on macOS/Linux), and navigate to the project directory:
 ```bash
-# Example (Windows):
+node -v
+npm -v
+```
+
+## Installation
+
+### 1. Get the project
+
+Place the project folder on your machine.
+
+Example path on Windows:
+
+```bash
 cd c:\Users\babul\OneDrive\Desktop\extension2.0
 ```
 
-### Step 3: Install Project Dependencies
-Run the install command to download all required packages:
+### 2. Install dependencies
+
 ```bash
 npm install
 ```
 
-### Step 4: Compile and Build the Extension
-Build the extension. This bundles and compiles the TSX/TS files into a new folder named `dist/`:
+### 3. Build the extension
+
+For a full production-style build:
+
 ```bash
 npm run build
 ```
 
-### Step 5: Load the Extension in Google Chrome
-1. Open Google Chrome.
-2. Type `chrome://extensions` in the URL bar and press `Enter`.
-3. In the top-right corner, toggle the **Developer mode** switch to **ON**.
-4. In the top-left corner, click the **"Load unpacked"** button.
-5. Browse and select the compiled **`dist`** folder inside your project directory:
-   `c:\Users\babul\OneDrive\Desktop\extension2.0\dist`
-6. Click **Select Folder**.
-7. Click the Chrome Extensions puzzle icon and **pin** **FloatTube AI** for quick access.
+For a faster build during local testing:
 
----
-
-## 💡 How to Use FloatTube AI
-
-### 1. Activating the Float Player
-* Open a video on **YouTube**, **Udemy**, or any supported HTML5 video site.
-* Click the **FloatTube AI icon** in your toolbar to open the settings popup, then click **▶ Start Floating** (or press your configured shortcut).
-* The video will immediately enter native Picture-in-Picture mode!
-
-### 2. Opening the Study Workspace
-* Click **💼 Open Study Workspace** directly in the extension popup menu.
-* Alternatively, press your configured keyboard shortcut (or open the Chrome Side Panel menu and select **FloatTube AI**).
-* The side panel will open next to your active tab and automatically sync with the video's timeline.
-* Switch between the **Notes**, **Transcript**, and **Workspace** tabs inside the side panel to study.
-
-### 3. Taking Notes & Bookmarks
-* In the **Notes** tab, type your thoughts and press **Enter** or click **Add**. The note will save with a timestamp.
-* Click the timestamp badges next to any note to seek the video to that moment.
-* Click **MD** or **PDF** to export your study guide.
-* Use the **Workspace** tab to bookmark chapters or search Google inline.
-
-### 4. Toggling Focus Mode
-* In the extension popup or the options dashboard, toggle **Focus Mode** to ON.
-* All clutter (sidebar, comments, lists) on YouTube and Udemy will be hidden immediately, allowing you to study in peace.
-
----
-
-## ⌨️ Keyboard Shortcuts Configuration
-
-FloatTube AI supports customizable browser hotkeys for seamless control. You can configure your own preferred key combinations at any time:
-
-1. Open Google Chrome or Brave.
-2. Navigate to `chrome://extensions/shortcuts` (or `brave://settings/extensions/shortcuts`).
-3. Find **FloatTube AI** in the list and assign your preferred key combinations.
-
----
-
-## 📁 Project Folder Layout
-
-```
-extension2.0/
-├── manifest.json              ← Manifest V3 setup (Permissions, Shortcuts, SidePanel)
-├── vite.config.ts             ← Vite build configurations with web-extension plugin
-├── package.json               ← Packages, dependencies & build scripts
-├── tsconfig.json              ← TypeScript compiler options
-├── tsconfig.node.json         ← Node-specific TypeScript config
-├── index.html                 ← Standalone local entry point
-├── popup.html                 ← Extension popup panel page markup
-├── options.html               ← Settings options dashboard page markup
-├── sidepanel.html             ← Side panel workspace page markup
-├── public/
-│   └── icons/                 ← Extension branding assets (16/32/48/128px)
-└── src/
-    ├── vite-env.d.ts          ← Vite TypeScript references
-    ├── main.ts                ← Main script entry
-    ├── style.css              ← Styling variables and utilities
-    ├── popup/                 ← React UI for the Extension Popup
-    │   ├── index.tsx
-    │   └── Popup.tsx
-    ├── options/               ← React UI for the Settings Dashboard
-    │   ├── index.tsx
-    │   └── OptionsPage.tsx
-    ├── sidepanel/             ← React UI for the Chrome Side Panel
-    │   ├── index.tsx
-    │   └── SidePanel.tsx
-    ├── content/               ← Script injected into YouTube/Udemy to render player
-    │   ├── index.ts           ← Content script entry (handles messaging & state updates)
-    │   ├── pipManager.ts      ← Handles browser Picture-in-Picture API
-    │   ├── autoFloat.ts       ← Detects tab switching/blurs to auto-trigger PiP
-    │   ├── shortcuts.ts       ← Keypress shortcuts listeners
-    │   └── focusMode.ts       ← Distraction-free CSS injection styles
-    ├── components/            
-    │   ├── FloatingPlayer/    ← Hoverable controls bar and drag utility guides
-    │   │   ├── FloatingPlayer.tsx
-    │   │   ├── ControlsBar.tsx
-    │   │   └── SnapZones.tsx
-    │   ├── Transcript/        ← Synced transcript scrolling panel
-    │   │   └── TranscriptPanel.tsx
-    │   ├── NotesPanel/        ← Note-taking editor, MD/PDF exporter
-    │   │   └── NotesPanel.tsx
-    │   ├── Bookmarks/         ← Timestamped video bookmark lists
-    │   │   └── BookmarkList.tsx
-    │   └── MiniWorkspace/     ← Tabbed mini panel workspace (Notes, Search, Bookmarks)
-    │       └── MiniWorkspace.tsx
-    ├── services/              ← Synced transcript fetching layer
-    │   └── transcript.ts
-    ├── providers/             ← Multi-site DOM selector wrappers (YouTube, Udemy, Coursera)
-    │   ├── VideoProvider.ts
-    │   ├── registry.ts
-    │   ├── YouTubeProvider.ts
-    │   ├── UdemyProvider.ts
-    │   ├── CourseraProvider.ts
-    │   ├── NetflixProvider.ts
-    │   ├── PrimeVideoProvider.ts
-    │   ├── SkillshareProvider.ts
-    │   └── GenericHTML5Provider.ts
-    ├── store/                 ← Zustand shared state management
-    └── storage/               
-        ├── settings.ts        ← Device synced storage (chrome.storage.sync)
-        ├── positionStore.ts   ← Local position tracker (chrome.storage.local)
-        └── db.ts              ← IndexedDB notes & bookmarks database
+```bash
+npm run build:fast
 ```
 
----
+This creates the compiled extension in the `dist/` folder.
 
-## 💻 Technical Architecture & Development Guide
+### 4. Load the extension in Chrome
 
-### 🧱 Core Architecture
-1. **Direct Native Picture-in-Picture**: By triggering `video.requestPictureInPicture()` synchronously on the original video element, the browser handles the float natively. This bypasses DRM restrictions (allowing Netflix and Prime Video to float natively rather than showing a black screen) and CORS issues.
-2. **Background Message Bus**: The background service worker (`src/background/index.ts`) acts as a central router. It redirects state updates between the Content Script (which controls the video) and the active extension panels (Popup, Side Panel, Options).
-3. **Database Layer (IndexedDB)**: Notes and Bookmarks are stored in client-side IndexedDB using the `idb` wrapper, ensuring high performance and offline persistence.
-4. **Settings Sync**: User configurations are saved using Chrome's Synced Storage (`chrome.storage.sync`) so settings propagate across multiple logged-in browsers.
+1. Open `chrome://extensions`.
+2. Turn on `Developer mode`.
+3. Click `Load unpacked`.
+4. Select the `dist` folder inside this project.
+5. Pin `FloatTube AI` from the extensions menu if you want quick access.
 
-### 🧪 Local Standalone Preview Mode
-Developing Chrome Extensions can be tedious due to constant compilation and reloading. To streamline this, FloatTube AI is designed with an **Extension API Availability Guard**.
-If you run the app outside of Chrome's extension manager (e.g., in a standard local HTTP web server):
-* It automatically falls back from `chrome.storage.sync` and `chrome.storage.local` to standard browser `localStorage`.
-* It falls back from Chrome's Extension message channels to standard DOM event dispatching.
-* This allows you to preview the popup, options dashboard, and sidepanel dynamically inside standard browser tabs without needing to package them.
+### 5. Refresh video tabs that were already open
 
-### 🛠️ Developer Build Commands
-For developers editing or modifying the code, use the following package commands:
-* **Install Packages**: `npm install`
-* **Development Build (Fast)**: `npm run build:fast`
-  * Compiles code using Vite without running strict TypeScript type checking.
-* **Production Build (Strict)**: `npm run build`
-  * Runs strict TypeScript type-checking (`tsc --noEmit`) and compiles final minimized assets into `/dist`.
-* **Watch Mode**: `npm run dev`
-  * Keeps the compiler active, rebuilding the `/dist` directory automatically upon edits.
+If YouTube, Udemy, or another supported site was already open before you loaded or reloaded the extension, refresh that tab once so the content script is active.
 
----
+## Quick start
 
-## ❓ Troubleshooting & FAQs
+If you want the shortest path from install to using it:
 
-* **Why does the extension popup show "No video detected"?**
-  If you just loaded/reloaded the extension, your active browser tab needs to be refreshed once so Chrome can inject the script. Alternatively, clicking **"Start Floating"** in the popup will auto-inject the script and trigger the native PiP without a refresh!
-* **How do I make the video float automatically when I switch tabs?**
-  To enable seamless auto-floating:
-  1. Open Chrome and go to `chrome://flags/#auto-picture-in-picture-for-video-playback`.
-  2. Change the dropdown setting from **Default** to **Enabled**.
-  3. Relaunch Google Chrome.
-  4. Tabbing away from any active video will now automatically open a native PiP window!
-* **The transcript is loading infinitely / showing "No transcript available".**
-  FloatTube AI extracts captions using YouTube's timedtext metadata. If the video does not have native captions or auto-generated English captions enabled, the transcript panel will display a "No transcript available" message.
-* **Why does Netflix or Amazon Prime show a black screen in the float?**
-  Netflix and Amazon Prime use Digital Rights Management (DRM) which restricts stream capture via `captureStream` for copyright protection. To bypass this, the extension automatically detects the DRM block and falls back to **Controller Mode**. In Controller Mode, the video plays on the host tab while the floating player operates as a synced remote control board, allowing you to play, pause, take notes, and read transcripts without hitting DRM blocks.
-* **How do I update the extension after making code changes?**
-  Run `npm run build` to compile your latest edits. Then open `chrome://extensions` and click the **Reload** (circular arrow) icon on the **FloatTube AI** card.
+1. Open a supported video page.
+2. Click the `FloatTube AI` extension icon.
+3. Press `Start Floating`.
+4. Press `Open Study Workspace` to open the side panel.
+5. Add notes or bookmarks while you watch.
+6. Click timestamps to jump back to important moments.
 
----
+## How to use the popup
 
-## 👤 Author
+The extension popup has two tabs: `Player` and `Settings`.
 
-**Babul Kumar**
+### Player tab
+
+This is the main action screen.
+
+- `Start Floating`: requests native Chrome Picture-in-Picture for the current video.
+- `Stop Floating`: exits native Picture-in-Picture if the video is already floating.
+- Site badge: shows the detected site, such as YouTube or Udemy.
+- `On Tab Switch`: attempts to float the video when you move to another tab.
+- `On Window Blur`: attempts to float when Chrome loses focus.
+- `On Page Leave`: attempts to float when you navigate away.
+- `Focus Mode`: hides distractions on supported sites.
+- `AI Features`: currently a saved toggle for future functionality.
+- `Open Study Workspace`: opens the side panel.
+- `Configure Keyboard Shortcuts`: jumps to Chrome's extension shortcut page.
+
+### Settings tab in the popup
+
+This is a lightweight settings view.
+
+- Gemini API key field: stored in extension settings, but not yet used for active AI features.
+- `Remember Position`: shown in UI, but not fully reflected in the current native PiP flow.
+- `Show Transcript`: shown in UI, but not fully reflected in the current native PiP flow.
+- Default position boxes are visible in the popup, but they are not currently wired as an active control.
+
+## How to use the side panel
+
+Open the side panel from:
+
+- The popup's `Open Study Workspace` button.
+- Chrome's side panel command for the extension.
+- The keyboard shortcut registered for the side panel.
+
+The side panel tries to sync with:
+
+- The current active supported video tab first.
+- If that is not a video tab, the last video tab the extension was tracking.
+
+There is also an `X` button in the side panel header to close it.
+
+### Notes tab
+
+Use this while watching to capture study notes.
+
+- Type in the note box at the bottom.
+- Click `Add` to save the note.
+- Each note is saved with the current video timestamp.
+- Click a timestamp badge to seek back to that moment in the video.
+- Click `MD` to export notes as Markdown.
+- Click `PDF` to export notes as PDF.
+- Notes are stored per video.
+
+### Transcript tab
+
+Use this to read and search available captions.
+
+- The search box filters transcript lines.
+- The current active line is highlighted as the video plays.
+- Click any line to jump the video to that timestamp.
+
+Transcript sources currently work like this:
+
+- YouTube: the extension first tries YouTube's timed text endpoint.
+- Other sites: the extension tries subtitle or caption tracks exposed on the page.
+
+If a video has no accessible captions, the transcript tab may show no results.
+
+### Workspace tab
+
+This is split into two simple tools.
+
+- Bookmarks: save labeled timestamps for the current video.
+- Web Search: run a Google search from inside the side panel.
+
+For bookmarks:
+
+- Type a label.
+- Click `Save`.
+- Click the bookmark timestamp later to seek the video.
+- Delete bookmarks individually if needed.
+
+### AI tab
+
+The AI tab is currently a placeholder. It is present in the interface, but the actual AI features are not active yet.
+
+## How to use Focus Mode
+
+Focus Mode is meant to clean up distracting page elements while you study.
+
+Current behavior:
+
+- YouTube: hides areas such as recommendations, comments, Shorts-related elements, and some end-screen clutter.
+- Udemy: hides some sidebar or curriculum-style elements.
+- Other sites: the toggle may save, but there is currently no site-specific CSS cleanup implemented.
+
+## Keyboard shortcuts
+
+Chrome currently registers these commands from `manifest.json`:
+
+- `Ctrl+Shift+Y`: open the FloatTube AI side panel
+- `Alt+P`: toggle floating mode
+- `Alt+Space`: play or pause the current video
+
+To change shortcuts:
+
+1. Open `chrome://extensions/shortcuts`
+2. Find `FloatTube AI`
+3. Edit the shortcut bindings you want
+
+Notes:
+
+- Chrome may block or override some combinations depending on your OS.
+- The UI mentions some extra shortcut ideas, but only the commands above are currently registered in the manifest.
+
+## Options page
+
+Open the extension options page from Chrome's extension details page or from the extension UI if you add a link later.
+
+The current options page lets you save:
+
+- Auto-float triggers
+- Remember position
+- Show transcript
+- Default window size
+- Focus Mode
+- Theme
+- AI enable toggle
+- Gemini API key
+
+Important honesty note:
+
+- Not every saved setting is fully wired into the current runtime behavior yet.
+- The options page is still useful as the main place to review and store preferences, but some values are future-facing.
+
+## Typical workflow for studying
+
+One practical way to use the extension:
+
+1. Open a lesson on YouTube or Udemy.
+2. Start floating the video.
+3. Open the side panel.
+4. Keep the video floating while you work in another tab or app.
+5. Add notes whenever you hit an important idea.
+6. Add bookmarks for sections you want to revisit.
+7. Use the transcript tab to search for a keyword from the lecture.
+8. Export notes at the end of the session.
+
+## Data storage and privacy
+
+Here is where the extension stores data today:
+
+- Notes and bookmarks: browser IndexedDB.
+- Some session-style data structures: IndexedDB.
+- Settings: Chrome sync storage when available.
+- Position-related values: Chrome local storage when used by the overlay path.
+
+What this means for a user:
+
+- Your notes and bookmarks stay in your browser profile.
+- The current code does not send your notes to a remote server.
+- If you enter a Gemini API key, it is saved in extension settings, but the current build does not yet use it for live AI requests.
+
+## Troubleshooting
+
+### The popup says no video was detected
+
+Try these steps:
+
+1. Make sure the tab really contains a playable video.
+2. Refresh the tab if the extension was just installed or reloaded.
+3. Open the popup while the video tab is active.
+4. On generic video pages, try pressing `Start Floating` directly from the popup while the tab is active.
+
+### The side panel says no active video detected
+
+This usually means:
+
+- The current tab is not a supported video page.
+- The content script is not active yet.
+- The extension has not tracked a video tab in the current session.
+
+Try refreshing the video tab, then reopen the side panel.
+
+### Picture-in-Picture does not start
+
+Possible reasons:
+
+- The page does not expose a normal video element.
+- The browser blocked the PiP request.
+- A DRM-protected site limited the action.
+- The active page is not scriptable by the extension.
+
+Try the feature first on YouTube to confirm the extension is working.
+
+### Auto-float does not always trigger
+
+That can happen because:
+
+- Some PiP actions are sensitive to browser gesture rules.
+- Browser support differs by site and by Chromium version.
+- DRM-heavy sites can behave differently.
+
+The toggles tell the extension to try the behavior, but the browser may still limit it.
+
+### Transcript is empty
+
+Common reasons:
+
+- The video has no captions.
+- The captions are not exposed in a way the extension can read.
+- The caption language is different from what the current fetch path expects.
+
+YouTube generally gives the best transcript results.
+
+### Netflix or Prime Video behavior is inconsistent
+
+This is usually due to browser and DRM restrictions, not your installation steps.
+
+## Current limitations
+
+These are the main limits a new user should know:
+
+- The best overall experience is currently on YouTube and Udemy.
+- AI features are not active yet, even though the UI includes AI-related settings.
+- Several saved settings are groundwork and not fully reflected in the current runtime flow.
+- Focus Mode currently has meaningful site-specific behavior mainly for YouTube and Udemy.
+- Generic HTML5 support is useful, but less predictable than the named site integrations.
+
+## Development commands
+
+If you are editing the extension locally:
+
+- `npm install`: install dependencies
+- `npm run build`: strict TypeScript check plus Vite build
+- `npm run build:fast`: fast Vite build without the strict type-check step
+- `npm run dev`: watch mode that rebuilds into `dist/`
+
+After each code change:
+
+1. Rebuild the project
+2. Open `chrome://extensions`
+3. Click `Reload` on the FloatTube AI card
+4. Refresh any already-open video tabs
+
+## Project structure
+
+High-level folders:
+
+- `src/popup/`: popup UI
+- `src/sidepanel/`: side panel UI
+- `src/options/`: full settings page
+- `src/content/`: content script and page-side runtime
+- `src/providers/`: site-specific video integrations
+- `src/storage/`: settings, positions, notes, bookmarks, and session storage
+- `dist/`: built extension loaded into Chrome
+
+## Summary
+
+FloatTube AI already works well as a practical combo of:
+
+- native floating video
+- note-taking
+- transcript jumping
+- bookmark capture
+- side-panel study workflow
+
+Its strongest use case right now is learning-focused video watching on YouTube and similar sites, with a clear path for more advanced AI features later.

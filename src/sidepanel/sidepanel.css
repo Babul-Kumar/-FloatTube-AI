@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --sidepanel-scale: 1.12;
+}
+
 html, body, #root {
   font-family: 'Inter', sans-serif;
   background: #0f0f13;
@@ -9,4 +14,19 @@ html, body, #root {
   margin: 0;
   padding: 0;
   overflow: hidden;
+}
+
+html,
+body {
+  font-size: 16px;
+  line-height: 1.5;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+#root {
+  width: calc(100% / var(--sidepanel-scale));
+  height: calc(100% / var(--sidepanel-scale));
+  transform: scale(var(--sidepanel-scale));
+  transform-origin: top left;
 }

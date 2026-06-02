@@ -30,6 +30,22 @@ export default function SidePanel() {
   const [videoState, setVideoState] = useState<VideoState | null>(null)
   const [activeTabId, setActiveTabId] = useState<number | null>(null)
 
+  const handleClosePanel = async () => {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.tabs && chrome.sidePanel?.close) {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+        if (typeof tab?.windowId === 'number') {
+          await chrome.sidePanel.close({ windowId: tab.windowId })
+          return
+        }
+      }
+    } catch (error) {
+      console.warn('[FloatTube AI] Failed to close side panel via API:', error)
+    }
+
+    window.close()
+  }
+
   // Listen to state changes from content script
   useEffect(() => {
     // 1. Initial query: try currently active tab first, then fall back to last video tab
@@ -122,18 +138,42 @@ export default function SidePanel() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.3px' }}>FloatTube AI</div>
-          {videoState && (
-            <div style={{
-              fontSize: 11,
-              background: 'rgba(99, 102, 241, 0.15)',
-              padding: '2px 8px',
-              borderRadius: 20,
-              color: '#818CF8',
-              fontWeight: 500
-            }}>
-              Connected to {videoState.siteId}
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {videoState && (
+              <div style={{
+                fontSize: 11,
+                background: 'rgba(99, 102, 241, 0.15)',
+                padding: '2px 8px',
+                borderRadius: 20,
+                color: '#818CF8',
+                fontWeight: 500
+              }}>
+                Connected to {videoState.siteId}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleClosePanel}
+              aria-label="Close side panel"
+              title="Close side panel"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.04)',
+                color: '#cbd5e1',
+                fontSize: 16,
+                lineHeight: 1,
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              ×
+            </button>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
           {TABS.map(tab => (
