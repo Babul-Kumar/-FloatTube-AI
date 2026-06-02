@@ -6,10 +6,10 @@ import type { TranscriptSegment } from '../providers/VideoProvider'
 import { jsPDF } from 'jspdf'
 
 const TABS = [
-  { id: 'notes', label: '📝 Notes' },
-  { id: 'transcript', label: '📄 Transcript' },
-  { id: 'workspace', label: '💼 Workspace' },
-  { id: 'ai', label: '🤖 AI' },
+  { id: 'notes', label: 'Notes' },
+  { id: 'transcript', label: 'Transcript' },
+  { id: 'workspace', label: 'Workspace' },
+  { id: 'ai', label: 'AI' },
 ] as const
 
 type TabId = typeof TABS[number]['id']
@@ -138,12 +138,13 @@ export default function SidePanel() {
         <div style={{ display: 'flex', gap: 4 }}>
           {TABS.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-              flex: 1, padding: '8px 4px',
-              background: activeTab === tab.id ? 'rgba(99,102,241,0.15)' : 'transparent',
+              flex: 1, padding: '10px 2px',
+              background: activeTab === tab.id ? 'rgba(99,102,241,0.12)' : 'transparent',
               border: 'none',
-              borderBottom: `2px solid ${activeTab === tab.id ? '#6366F1' : 'transparent'}`,
-              color: activeTab === tab.id ? '#6366F1' : '#666',
-              fontSize: 11, cursor: 'pointer', fontWeight: 600,
+              borderBottom: `2px solid ${activeTab === tab.id ? '#818CF8' : 'transparent'}`,
+              color: activeTab === tab.id ? '#818CF8' : '#aaa',
+              fontSize: 13, cursor: 'pointer', fontWeight: 600,
+              fontFamily: "'Inter', sans-serif",
               transition: 'all 0.15s',
             }}>{tab.label}</button>
           ))}

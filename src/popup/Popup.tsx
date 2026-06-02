@@ -322,6 +322,28 @@ function MainPanel({ settings, isFloating, siteColor, detectedSite, onToggleFloa
           </div>
           <div style={{ color: '#818CF8', fontSize: 14, fontWeight: 'bold' }}>➔</div>
         </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+          <button
+            onClick={() => {
+              if (typeof chrome !== 'undefined' && chrome.tabs) {
+                chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
+              }
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#818CF8',
+              fontSize: 11,
+              fontWeight: 500,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: '4px 8px',
+            }}
+          >
+            ⌨️ Configure Keyboard Shortcuts
+          </button>
+        </div>
       </div>
     </div>
   )

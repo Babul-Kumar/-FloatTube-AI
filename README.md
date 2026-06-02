@@ -23,11 +23,11 @@ Unlike standard Picture-in-Picture players, FloatTube AI integrates a feature-ri
 ## 🚀 Key Features
 
 ### 📺 Direct Native Picture-in-Picture
-* **Instant Native Float**: Clicking **"Start Floating"** in the popup or pressing `Alt + P` directly launches Chrome's native Picture-in-Picture (PiP) window. This ensures zero delay, high performance, and zero black-screen or CORS issues.
+* **Instant Native Float**: Clicking **"Start Floating"** in the popup or pressing your custom shortcut directly launches Chrome's native Picture-in-Picture (PiP) window. This ensures zero delay, high performance, and zero black-screen or CORS issues.
 * **Always-On-Top Viewing**: The native PiP window floats on top of all application windows, including non-browser windows (like your IDE or text editor).
 * **Auto-Float on Tab Change**: Automatically enters Picture-in-Picture when you switch tabs, and docks back to the original page when you return (when Chrome's native auto-PiP flag is enabled).
 
-### 📝 Chrome Side Panel Study Workspace (`Ctrl + Shift + Y`)
+### 📝 Chrome Side Panel Study Workspace
 * **Real-Time Synced Transcript**: Captures video captions (supporting YouTube TimedText API + WebVTT fallback reader) and auto-scrolls to highlight the active line. Click any line to skip the video directly to that sentence.
 * **Timestamp-Linked Notes**: Type study notes on the fly. The editor automatically captures the video's active timestamp, generating a clickable link (e.g. `[02:14]`) so you can return to that moment with a single click.
 * **Notes Exports**: Save your notes as structured Markdown (`.md`) or print-ready PDF files for offline review.
@@ -108,12 +108,12 @@ npm run build
 
 ### 1. Activating the Float Player
 * Open a video on **YouTube**, **Udemy**, or any supported HTML5 video site.
-* Click the **FloatTube AI icon** in your toolbar to open the settings popup, then click **▶ Start Floating** (or press **Alt+P**).
+* Click the **FloatTube AI icon** in your toolbar to open the settings popup, then click **▶ Start Floating** (or press your configured shortcut).
 * The video will immediately enter native Picture-in-Picture mode!
 
 ### 2. Opening the Study Workspace
 * Click **💼 Open Study Workspace** directly in the extension popup menu.
-* Alternatively, press **`Ctrl + Shift + Y`** (or open the Chrome Side Panel menu and select **FloatTube AI**).
+* Alternatively, press your configured keyboard shortcut (or open the Chrome Side Panel menu and select **FloatTube AI**).
 * The side panel will open next to your active tab and automatically sync with the video's timeline.
 * Switch between the **Notes**, **Transcript**, and **Workspace** tabs inside the side panel to study.
 
@@ -129,15 +129,17 @@ npm run build
 
 ---
 
-## ⌨️ Keyboard Shortcuts Cheatsheet
+## ⌨️ Keyboard Shortcuts Configuration
 
-FloatTube AI includes native browser hotkeys. You can customize these shortcuts at any time by visiting `chrome://extensions/shortcuts` in Google Chrome.
+FloatTube AI supports native browser hotkeys for seamless control. Since these are fully customizable by the user, you can configure your own preferred key combinations at any time:
 
-| Action | Suggested Shortcut | Details |
-|---|---|---|
-| **Toggle Float Mode** | `Alt + P` | Opens or closes the native Picture-in-Picture window |
-| **Play / Pause** | `Alt + Space` | Play or pause video playback |
-| **Open Study Workspace** | `Ctrl + Shift + Y` | Open the study notes and transcript side panel |
+1. Open Google Chrome or Brave.
+2. Navigate to `chrome://extensions/shortcuts` (or `brave://settings/extensions/shortcuts`).
+3. Find **FloatTube AI** in the list.
+4. Set your preferred shortcuts for:
+   * **Open FloatTube AI Side Panel** (opens/closes the notes and transcript workspace)
+   * **Toggle Float Mode** (opens/closes the floating video player)
+   * **Play / Pause** (toggles video playback)
 
 ---
 
