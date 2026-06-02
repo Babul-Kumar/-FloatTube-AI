@@ -1,0 +1,100 @@
+{
+  "manifest_version": 3,
+  "name": "FloatTube AI",
+  "version": "1.0.0",
+  "description": "Smart floating video player for YouTube, Udemy, Netflix, and any HTML5 video site.",
+  "author": "FloatTube AI",
+
+  "icons": {
+    "16":  "icons/icon16.png",
+    "32":  "icons/icon32.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "32":  "icons/icon32.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "FloatTube AI"
+  },
+
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*",
+        "*://*.udemy.com/*",
+        "*://*.coursera.org/*",
+        "*://*.skillshare.com/*",
+        "*://*.netflix.com/*",
+        "*://*.primevideo.com/*",
+        "*://*.amazon.com/*/video/*",
+        "*://*.amazon.com/gp/video/*"
+      ],
+      "js": ["src/content/index.ts"],
+      "css": ["src/content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+
+  "options_page": "options.html",
+
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs",
+    "scripting",
+    "commands",
+    "sidePanel",
+    "offscreen"
+  ],
+
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://*.udemy.com/*",
+    "*://*.coursera.org/*",
+    "*://*.skillshare.com/*",
+    "*://*.netflix.com/*",
+    "*://*.primevideo.com/*",
+    "*://*.amazon.com/*"
+  ],
+
+  "commands": {
+    "toggle-float": {
+      "suggested_key": { "default": "Alt+P" },
+      "description": "Toggle Float Mode"
+    },
+    "play-pause": {
+      "suggested_key": { "default": "Alt+Space" },
+      "description": "Play / Pause"
+    },
+    "skip-forward": {
+      "suggested_key": { "default": "Alt+Right" },
+      "description": "Skip Forward 10s"
+    },
+    "skip-back": {
+      "suggested_key": { "default": "Alt+Left" },
+      "description": "Skip Backward 10s"
+    }
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["**/*.js", "**/*.css", "**/*.png", "**/*.svg"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
