@@ -64,7 +64,7 @@ Learn without losing context.
 ## Screenshots
 
 ### Floating Video Player
-[alt text](image.png)
+![alt text](image.png)
 
 ### Study Workspace
 
