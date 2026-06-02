@@ -99,9 +99,8 @@ if (!(window as any).__floattube_injected) {
   // Register message listener immediately at top level to ensure immediate responsiveness (e.g. during dynamic injection)
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.type) {
-      case 'COMMAND':
-        ensureInitialized().then((ok) => {
-          if (!ok || !provider) return
+      case 'COMMAND': {
+        if (initialized && provider) {
           if (message.command === 'play') {
             provider.play()
           } else if (message.command === 'pause') {
@@ -109,8 +108,20 @@ if (!(window as any).__floattube_injected) {
           } else {
             handleCommand(message.command)
           }
-        })
+        } else {
+          ensureInitialized().then((ok) => {
+            if (!ok || !provider) return
+            if (message.command === 'play') {
+              provider.play()
+            } else if (message.command === 'pause') {
+              provider.pause()
+            } else {
+              handleCommand(message.command)
+            }
+          })
+        }
         break
+      }
 
       case 'TOGGLE_FLOAT': {
         if (document.pictureInPictureElement) {
