@@ -8,6 +8,7 @@ import { jsPDF } from 'jspdf'
 const TABS = [
   { id: 'notes', label: '📝 Notes' },
   { id: 'transcript', label: '📄 Transcript' },
+  { id: 'workspace', label: '💼 Workspace' },
   { id: 'ai', label: '🤖 AI' },
 ] as const
 
@@ -31,15 +32,26 @@ export default function SidePanel() {
 
   // Listen to state changes from content script
   useEffect(() => {
-    // 1. Initial query for active tab if running as extension
+    // 1. Initial query: try currently active tab first, then fall back to last video tab
     if (typeof chrome !== 'undefined' && chrome.tabs) {
       chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
         if (tab?.id) {
-          setActiveTabId(tab.id)
           chrome.tabs.sendMessage(tab.id, { type: 'GET_VIDEO_STATE' }, (response) => {
-            if (chrome.runtime.lastError) return
-            if (response?.state) {
+            if (!chrome.runtime.lastError && response?.state) {
               setVideoState(response.state)
+              setActiveTabId(tab.id ?? null)
+            } else {
+              // Active tab didn't have video, ask background script for the last video tab
+              chrome.runtime.sendMessage({ type: 'GET_LAST_VIDEO_TAB' }, (res) => {
+                if (res?.tabId) {
+                  setActiveTabId(res.tabId ?? null)
+                  chrome.tabs.sendMessage(res.tabId, { type: 'GET_VIDEO_STATE' }, (vResponse: any) => {
+                    if (!chrome.runtime.lastError && vResponse?.state) {
+                      setVideoState(vResponse.state)
+                    }
+                  })
+                }
+              })
             }
           })
         }
@@ -61,15 +73,20 @@ export default function SidePanel() {
     // 2. Message listener for runtime messages
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
       const listener = (message: any, sender: any) => {
-        if (message.type === 'VIDEO_STATE' && sender.tab?.active) {
-          setVideoState(message.state)
-          setActiveTabId(sender.tab.id)
+        if (message.type === 'VIDEO_STATE') {
+          // Sync if sender is active, or if we have no activeTabId yet, or if it matches current tab we're tracking
+          if (sender.tab?.active || !activeTabId || sender.tab?.id === activeTabId) {
+            setVideoState(message.state)
+            if (sender.tab?.id) {
+              setActiveTabId(sender.tab.id)
+            }
+          }
         }
       }
       chrome.runtime.onMessage.addListener(listener)
       return () => chrome.runtime.onMessage.removeListener(listener)
     }
-  }, [])
+  }, [activeTabId])
 
   const handleSeek = (seconds: number) => {
     if (activeTabId && typeof chrome !== 'undefined' && chrome.tabs) {
@@ -155,6 +172,9 @@ export default function SidePanel() {
                 {activeTab === 'transcript' && (
                   <TranscriptTab videoState={videoState} onSeek={handleSeek} />
                 )}
+                {activeTab === 'workspace' && (
+                  <WorkspaceTab videoState={videoState} onSeek={handleSeek} />
+                )}
                 {activeTab === 'ai' && (
                   <AITab />
                 )}
@@ -224,12 +244,42 @@ function NotesTab({ videoState, onSeek, onPlayPause }: { videoState: VideoState,
     a.click()
   }
 
+  const exportAsPDF = () => {
+    const doc = new jsPDF()
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(16)
+    doc.text(`Notes: ${videoState.title}`, 10, 15)
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(10)
+    
+    let y = 25
+    notes.forEach((n: any) => {
+      if (y > 280) {
+        doc.addPage()
+        y = 15
+      }
+      const timeStr = `[${formatTime(n.timestamp)}]`
+      doc.setFont("helvetica", "bold")
+      doc.text(timeStr, 10, y)
+      doc.setFont("helvetica", "normal")
+      
+      const splitText = doc.splitTextToSize(n.content, 160)
+      doc.text(splitText, 30, y)
+      y += (splitText.length * 5) + 5
+    })
+    
+    doc.save(`${videoState.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_notes.pdf`)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div style={{ fontSize: 11, color: '#555', fontWeight: 600 }}>VIDEO NOTES ({notes.length})</div>
         {notes.length > 0 && (
-          <button onClick={exportAsMD} style={{ ...BTN_STYLE, flex: 'none', padding: '4px 8px' }}>Export .md</button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={exportAsMD} style={{ ...BTN_STYLE, flex: 'none', padding: '4px 8px' }}>MD</button>
+            <button onClick={exportAsPDF} style={{ ...BTN_STYLE, flex: 'none', padding: '4px 8px' }}>PDF</button>
+          </div>
         )}
       </div>
 
@@ -411,6 +461,146 @@ function AITab() {
         <div style={{ fontSize: 24, marginBottom: 8 }}>🤖</div>
         <div style={{ fontSize: 13, color: '#aaa', marginBottom: 4 }}>AI Pack – Coming Soon</div>
         <div style={{ fontSize: 11, color: '#555' }}>Add your Gemini API key in Settings to enable AI summaries, chat, flashcards, and quizzes.</div>
+      </div>
+    </div>
+  )
+}
+
+function WorkspaceTab({ videoState, onSeek }: { videoState: VideoState, onSeek: (s: number) => void }) {
+  const [bookmarks, setBookmarks] = useState<any[]>([])
+  const [newBookmarkLabel, setNewBookmarkLabel] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const videoId = videoState.videoId
+
+  const loadBookmarks = async () => {
+    const res = await getBookmarks(videoId)
+    res.sort((a, b) => a.timestamp - b.timestamp)
+    setBookmarks(res)
+  }
+
+  useEffect(() => {
+    loadBookmarks()
+  }, [videoId])
+
+  const handleAddBookmark = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newBookmarkLabel.trim()) return
+
+    const timestamp = Math.floor(videoState.currentTime)
+    await addBookmark({
+      videoId,
+      siteId: videoState.siteId,
+      timestamp,
+      label: newBookmarkLabel.trim()
+    })
+    setNewBookmarkLabel('')
+    loadBookmarks()
+  }
+
+  const handleDeleteBookmark = async (id: number) => {
+    await deleteBookmark(id)
+    loadBookmarks()
+  }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) return
+    const url = `https://www.google.com/search?q=${encodeURIComponent(searchQuery.trim())}`
+    window.open(url, '_blank')
+    setSearchQuery('')
+  }
+
+  const formatTime = (secs: number) => {
+    const h = Math.floor(secs / 3600)
+    const m = Math.floor((secs % 3600) / 60)
+    const s = Math.floor(secs % 60)
+    const pad = (n: number) => (n < 10 ? '0' + n : n)
+    if (h > 0) return `${h}:${pad(m)}:${pad(s)}`
+    return `${m}:${pad(s)}`
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 16, gap: 16 }}>
+      {/* Bookmarks Section */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ fontSize: 11, color: '#555', fontWeight: 600, marginBottom: 8 }}>BOOKMARKS & CHAPTERS ({bookmarks.length})</div>
+        
+        <div style={{ flex: 1, overflowY: 'auto', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {bookmarks.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 20, color: '#555', fontSize: 12 }}>
+              No bookmarks yet. Add key moments below!
+            </div>
+          ) : (
+            bookmarks.map((bm: any) => (
+              <div key={bm.id} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: 8, padding: '8px 10px', gap: 10
+              }}>
+                <button onClick={() => onSeek(bm.timestamp)} style={{
+                  background: 'rgba(99, 102, 241, 0.15)', border: 'none', borderRadius: 4,
+                  color: '#818CF8', fontSize: 10, fontWeight: 600, padding: '3px 8px', cursor: 'pointer',
+                  flexShrink: 0
+                }}>
+                  ⏱️ {formatTime(bm.timestamp)}
+                </button>
+                <div style={{ flex: 1, fontSize: 12, color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {bm.label}
+                </div>
+                <button onClick={() => handleDeleteBookmark(bm.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 11, padding: 0 }}>🗑️</button>
+              </div>
+            ))
+          )}
+        </div>
+
+        <form onSubmit={handleAddBookmark} style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="text"
+            placeholder={`Add bookmark at ${formatTime(videoState.currentTime)}...`}
+            value={newBookmarkLabel}
+            onChange={(e) => setNewBookmarkLabel(e.target.value)}
+            style={{
+              flex: 1, background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 8, padding: '8px 10px',
+              color: '#fff', fontSize: 12, outline: 'none',
+              fontFamily: "'Inter', sans-serif"
+            }}
+          />
+          <button type="submit" style={{
+            background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+            border: 'none', borderRadius: 8, color: '#fff',
+            fontSize: 12, fontWeight: 600, padding: '8px 14px', cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}>Save</button>
+        </form>
+      </div>
+
+      <div style={{ height: 1, background: 'rgba(255,255,255,0.08)' }} />
+
+      {/* Google Search Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ fontSize: 11, color: '#555', fontWeight: 600 }}>WEB SEARCH</div>
+        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="text"
+            placeholder="Search Google inline..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              flex: 1, background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 8, padding: '8px 10px',
+              color: '#fff', fontSize: 12, outline: 'none',
+              fontFamily: "'Inter', sans-serif"
+            }}
+          />
+          <button type="submit" style={{
+            background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+            border: 'none', borderRadius: 8, color: '#fff',
+            fontSize: 12, fontWeight: 600, padding: '8px 14px', cursor: 'pointer'
+          }}>Search</button>
+        </form>
       </div>
     </div>
   )

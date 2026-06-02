@@ -73,6 +73,12 @@
   ],
 
   "commands": {
+    "_execute_side_panel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      },
+      "description": "Open FloatTube AI Side Panel"
+    },
     "toggle-float": {
       "suggested_key": { "default": "Alt+P" },
       "description": "Toggle Float Mode"

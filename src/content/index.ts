@@ -4,7 +4,7 @@ import { detectProvider } from '../providers/registry'
 import { setupAutoFloat } from './autoFloat'
 import { handleCommand, setShortcutProvider } from './shortcuts'
 import { enableFocusMode, disableFocusMode } from './focusMode'
-import { getSettings } from '../storage/settings'
+import { getSettings, type FloatSettings } from '../storage/settings'
 import { FloatingPlayer } from '../components/FloatingPlayer/FloatingPlayer'
 
 let rootElement: HTMLDivElement | null = null
@@ -264,6 +264,23 @@ if (!(window as any).__floattube_injected) {
     document.addEventListener('yt-navigate-finish', () => {
       initialized = false
       setTimeout(() => pollInitialization(10), 1000)
+    })
+  }
+
+  // Listen for settings changes to apply Focus Mode instantly
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === 'sync' && changes.floatSettings) {
+        const newSettings = changes.floatSettings.newValue as FloatSettings | undefined
+        const currentProvider = provider || detectProvider()
+        if (newSettings && currentProvider) {
+          if (newSettings.focusModeEnabled) {
+            enableFocusMode(currentProvider.siteId)
+          } else {
+            disableFocusMode()
+          }
+        }
+      }
     })
   }
 }

@@ -42,6 +42,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       })
       return true  // async
     }
+    case 'GET_LAST_VIDEO_TAB': {
+      sendResponse({ tabId: lastVideoTabId })
+      break
+    }
     case 'TOGGLE_FLOAT': {
       if (lastVideoTabId !== null) {
         chrome.tabs.sendMessage(lastVideoTabId, { type: 'TOGGLE_FLOAT' })
