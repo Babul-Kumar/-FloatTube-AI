@@ -1,138 +1,220 @@
 # FloatTube AI
 
-FloatTube AI is a Chromium extension that combines native Picture-in-Picture video playback with an integrated study workspace. It provides timestamped notes, bookmarks, transcript search, and a lightweight side panel so you can learn from video while staying productive.
+> Turn any video into a distraction-free learning workspace.
 
-Author: Babul Kumar
+FloatTube AI is a Chromium extension that combines native Picture-in-Picture playback with a powerful study workspace. Take timestamped notes, save bookmarks, search transcripts, and stay productive while learning from videos.
 
-Key goals:
-- Keep video floating while you work in other tabs or apps
-- Capture timestamped notes and bookmarks per video
-- Search and jump transcripts
-- Provide a compact study workspace alongside the browser
-
-## Features
-
-- Native Picture-in-Picture (PiP) integration for supported video pages
-- Side panel study workspace with Notes, Transcript, Bookmarks, and AI tab (placeholder)
-- Timestamped notes and bookmarks; export notes to Markdown or PDF
-- Transcript search and click-to-seek functionality
-- Auto-float triggers: on tab switch, window blur, and page leave
-- Focus Mode to reduce visual distractions on supported sites
-
-## Current status
-
-- Fully functional: PiP start/stop, popup site detection, notes, bookmarks, transcript search, and core side panel UI.
-- Work in progress: AI features (placeholder tab and settings), some options that are saved but not fully applied to the native PiP overlay flow.
-
-## Supported sites
-
-Primary integrations:
-- YouTube
-- Udemy
-- Coursera
-- Skillshare
-- Netflix (limited by DRM)
-- Prime Video / Amazon Video (limited by DRM)
-
-Fallback: generic HTML5 `<video>` pages may work but are less reliable than targeted integrations.
-
-## Feature support by site
-
-Support varies by site and browser; YouTube and Udemy provide the best experience. DRM-heavy platforms (Netflix, Prime Video) may restrict PiP and transcript access.
-
-## Prerequisites
-
-- Chromium-based browser (Chrome or Edge) with side panel support
-- Node.js 18+ and npm
-
-Verify versions:
-
-```bash
-node -v
-npm -v
-```
-
-## Installation
-
--# FloatTube AI
-
-FloatTube AI is a lightweight Chromium extension that helps learners watch videos in Picture-in-Picture while maintaining a compact study workspace in the browser. It focuses on timestamped notes, bookmarks, and transcript-based navigation to make revisiting lecture content fast and structured.
-
-**Author:** Babul Kumar
-
-## Features
-
-- Native Picture-in-Picture (PiP) controls (start / stop)
-- Side panel study workspace: Notes, Transcript, Bookmarks
-- Timestamped notes and bookmarks with Markdown/PDF export
-- Transcript search and click-to-seek (when captions are available)
-- Auto-float triggers (tab switch, window blur, page leave)
-- Focus Mode to reduce visual distractions on supported sites
-
-## Quick start
-
-1. Open a supported video page (YouTube or Udemy recommended).
-2. Click the FloatTube AI extension icon and choose `Start Floating`.
-3. Open the study workspace to access Notes, Transcript, and Bookmarks.
-4. Add timestamped notes/bookmarks and click timestamps to seek the video.
-
-## Installation
-
-Prerequisites:
-
-- Node.js 18+ and npm
-- Chromium-based browser
-
-Install and build:
-
-```bash
-npm install
-npm run dev       # development (watch) mode
-npm run build     # production build
-npm run build:fast
-```
-
-Load locally:
-
-1. Build into `dist/`.
-2. Open `chrome://extensions`, enable Developer mode.
-3. Click `Load unpacked` and select the `dist/` folder.
-
-## Development
-
-- Source: `src/` — popup, sidepanel, content scripts, providers, and storage
-- Build: Vite + TypeScript (see `tsconfig.json`, `vite.config.ts`)
-- Useful commands: `npm run dev`, `npm run build`, `npm run build:fast`
-
-## Contributing
-
-- Fork or branch from `main`, implement changes, run the build, and open a pull request with a clear description.
-- Open issues for bugs or feature requests with steps to reproduce.
-
-## Project structure
-
-- `src/` — TypeScript source and React components
-- `public/` — static assets and icons
-- `dist/` — build output
-- `manifest.json` — extension manifest
-
-## License
-
-This project is available under the MIT License. See `LICENSE` for details.
+![Version](https://img.shields.io/badge/version-1.0-blue)
+![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
+![React](https://img.shields.io/badge/React-18-61dafb)
+![License](https://img.shields.io/badge/license-MIT-yellow)
 
 ---
 
-FloatTube AI — tools for focused learning with videos.
+## Why FloatTube AI?
 
-Author: Babul Kumar
+Watching tutorials often means constantly switching between videos, notes, documentation, and coding environments.
 
+FloatTube AI solves this by providing:
 
-Contributions are welcome. Please open issues for bugs or feature requests and submit pull requests with clear descriptions and tests where appropriate.
+* Native Picture-in-Picture playback
+* Timestamped notes
+* Video bookmarks
+* Transcript search
+* Focus mode
+* Study workspace inside the browser
+
+Learn without losing context.
+
+---
+
+## Features
+
+### Floating Video
+
+* Start or stop Picture-in-Picture instantly
+* Continue watching while working in other tabs
+* Auto-float on tab switch or window blur
+
+### Study Workspace
+
+* Timestamped notes
+* Quick bookmarks
+* Transcript navigation
+* Search transcript content
+
+### Productivity Tools
+
+* Markdown export
+* PDF export
+* Focus mode
+* Keyboard shortcuts
+
+### AI Features (Coming Soon)
+
+* Video summaries
+* AI-powered notes
+* Flashcard generation
+* Quiz generation
+* Chat with video transcript
+
+---
+
+## Screenshots
+
+### Floating Video Player
+
+(Add screenshot here)
+
+### Study Workspace
+
+(Add screenshot here)
+
+### Notes and Bookmarks
+
+(Add screenshot here)
+
+---
+
+## Supported Platforms
+
+| Platform            | Support |
+| ------------------- | ------- |
+| YouTube             | Full    |
+| Udemy               | Full    |
+| Coursera            | Full    |
+| Skillshare          | Full    |
+| Netflix             | Limited |
+| Prime Video         | Limited |
+| Generic HTML5 Video | Partial |
+
+---
+
+## Installation
+
+### Development
+
+Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/floattube-ai.git
+cd floattube-ai
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run development mode:
+
+```bash
+npm run dev
+```
+
+Build production version:
+
+```bash
+npm run build
+```
+
+### Load Extension
+
+1. Open chrome://extensions
+2. Enable Developer Mode
+3. Click Load Unpacked
+4. Select the dist folder
+
+---
+
+## Tech Stack
+
+Frontend:
+
+* React
+* TypeScript
+* Tailwind CSS
+
+State Management:
+
+* Zustand
+
+Build System:
+
+* Vite
+
+Browser APIs:
+
+* Chrome Extension Manifest V3
+* Side Panel API
+* Picture-in-Picture API
+* Storage API
+
+---
+
+## Project Structure
+
+```text
+src/
+├── popup/
+├── sidepanel/
+├── content/
+├── background/
+├── providers/
+├── components/
+├── services/
+├── storage/
+└── utils/
+```
+
+---
+
+## Roadmap
+
+### Version 1.0
+
+* Native PiP
+* Notes
+* Bookmarks
+* Transcript Search
+* Focus Mode
+
+### Version 1.5
+
+* Multi-site support improvements
+* Keyboard shortcut customization
+* Better transcript extraction
+
+### Version 2.0
+
+* AI Summaries
+* AI Chat
+* Flashcards
+* Quiz Generator
+
+---
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit changes
+4. Open a Pull Request
+
+---
 
 ## Author
 
 Babul Kumar
 
+B.Tech CSE Student | Full-Stack & AI Developer
+
+---
+
 ## License
 
-No license specified. Add a `LICENSE` file if you want to make usage terms explicit.
+MIT License
