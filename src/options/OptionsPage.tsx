@@ -147,7 +147,28 @@ export default function OptionsPage() {
       <div style={SECTION_LABEL}>Keyboard Shortcuts</div>
       <Card>
         <div style={{ fontSize: 12, color: '#555', marginBottom: 12 }}>
-          Customize shortcuts at <code style={{ color: '#6366F1', fontSize: 11 }}>chrome://extensions/shortcuts</code>
+          Customize shortcuts at{' '}
+          <button
+            onClick={() => {
+              if (typeof chrome !== 'undefined' && chrome.tabs) {
+                chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
+              }
+            }}
+            style={{
+              background: 'rgba(99,102,241,0.1)',
+              border: '1px solid rgba(99,102,241,0.2)',
+              borderRadius: 4,
+              color: '#6366F1',
+              fontSize: 11,
+              fontFamily: 'monospace',
+              padding: '2px 6px',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              display: 'inline-block',
+            }}
+          >
+            chrome://extensions/shortcuts
+          </button>
         </div>
         {[
           ['Alt + P', 'Toggle Float Mode'],

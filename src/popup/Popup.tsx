@@ -303,7 +303,28 @@ function MainPanel({ settings, isFloating, siteColor, detectedSite, onToggleFloa
         borderRadius: 10, padding: '10px 12px',
         fontSize: 11, color: '#555',
       }}>
-        <div style={{ color: '#777', marginBottom: 6, fontWeight: 600 }}>KEYBOARD SHORTCUTS</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ color: '#777', fontWeight: 600 }}>KEYBOARD SHORTCUTS</div>
+          <button
+            onClick={() => {
+              if (typeof chrome !== 'undefined' && chrome.tabs) {
+                chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })
+              }
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#6366F1',
+              fontSize: 10,
+              cursor: 'pointer',
+              padding: 0,
+              fontWeight: 500,
+              textDecoration: 'underline',
+            }}
+          >
+            Configure
+          </button>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}><span>Toggle Float</span><kbd style={KBD}>Alt+P</kbd></div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}><span>Play/Pause</span><kbd style={KBD}>Alt+Space</kbd></div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Skip ±10s</span><kbd style={KBD}>Alt+←/→</kbd></div>

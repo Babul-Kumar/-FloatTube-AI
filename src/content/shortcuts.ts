@@ -5,6 +5,7 @@ let provider: VideoProvider | null = null
 
 export function setShortcutProvider(p: VideoProvider) {
   provider = p
+  pipManager.setProvider(p)
 }
 
 // Commands API: background sends messages to content script
