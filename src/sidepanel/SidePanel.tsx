@@ -110,7 +110,7 @@ export default function SidePanel() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      height: '100vh',
+      height: '100%',
       background: 'linear-gradient(180deg, #0f0f13 0%, #1a1a2e 100%)',
       fontFamily: "'Inter', sans-serif",
       color: '#fff'
@@ -121,10 +121,10 @@ export default function SidePanel() {
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.3px' }}>FloatTube AI</div>
+          <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.3px' }}>FloatTube AI</div>
           {videoState && (
             <div style={{
-              fontSize: 10,
+              fontSize: 11,
               background: 'rgba(99, 102, 241, 0.15)',
               padding: '2px 8px',
               borderRadius: 20,
@@ -143,7 +143,7 @@ export default function SidePanel() {
               border: 'none',
               borderBottom: `2px solid ${activeTab === tab.id ? '#818CF8' : 'transparent'}`,
               color: activeTab === tab.id ? '#818CF8' : '#aaa',
-              fontSize: 13, cursor: 'pointer', fontWeight: 600,
+              fontSize: 14, cursor: 'pointer', fontWeight: 600,
               fontFamily: "'Inter', sans-serif",
               transition: 'all 0.15s',
             }}>{tab.label}</button>
@@ -152,18 +152,18 @@ export default function SidePanel() {
       </div>
 
       {/* Tab content */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <AnimatePresence mode="wait">
           <motion.div key={activeTab}
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}
-            style={{ height: '100%' }}
+            style={{ height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}
           >
             {!videoState ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 20, color: '#666', fontSize: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 20, color: '#9ca3af', fontSize: 14 }}>
                 <div style={{ fontSize: 32, marginBottom: 10 }}>📺</div>
                 <div>No active video detected.</div>
-                <div style={{ marginTop: 4, fontSize: 10 }}>Open YouTube or Udemy to begin.</div>
+                <div style={{ marginTop: 4, fontSize: 12 }}>Open YouTube or Udemy to begin.</div>
               </div>
             ) : (
               <>
@@ -275,7 +275,7 @@ function NotesTab({ videoState, onSeek, onPlayPause }: { videoState: VideoState,
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div style={{ fontSize: 11, color: '#555', fontWeight: 600 }}>VIDEO NOTES ({notes.length})</div>
+        <div style={{ fontSize: 13, color: '#9ca3af', fontWeight: 600 }}>VIDEO NOTES ({notes.length})</div>
         {notes.length > 0 && (
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={exportAsMD} style={{ ...BTN_STYLE, flex: 'none', padding: '4px 8px' }}>MD</button>
@@ -286,7 +286,7 @@ function NotesTab({ videoState, onSeek, onPlayPause }: { videoState: VideoState,
 
       <div style={{ flex: 1, overflowY: 'auto', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {notes.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 30, color: '#555', fontSize: 12 }}>
+          <div style={{ textAlign: 'center', padding: 30, color: '#9ca3af', fontSize: 14 }}>
             No notes for this video yet. Add one below!
           </div>
         ) : (
@@ -295,13 +295,13 @@ function NotesTab({ videoState, onSeek, onPlayPause }: { videoState: VideoState,
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <button onClick={() => onSeek(n.timestamp)} style={{
                   background: 'rgba(99, 102, 241, 0.15)', border: 'none', borderRadius: 4,
-                  color: '#818CF8', fontSize: 10, fontWeight: 600, padding: '2px 6px', cursor: 'pointer'
+                  color: '#818CF8', fontSize: 11, fontWeight: 600, padding: '2px 6px', cursor: 'pointer'
                 }}>
                   ⏱️ {formatTime(n.timestamp)}
                 </button>
-                <button onClick={() => handleDelete(n.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 11 }}>🗑️</button>
+                <button onClick={() => handleDelete(n.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 12 }}>🗑️</button>
               </div>
-              <div style={{ fontSize: 12, color: '#ccc', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>{n.content}</div>
+              <div style={{ fontSize: 14, color: '#ccc', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>{n.content}</div>
             </div>
           ))
         )}
@@ -316,7 +316,7 @@ function NotesTab({ videoState, onSeek, onPlayPause }: { videoState: VideoState,
             flex: 1, background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 10, padding: 10,
-            color: '#ddd', fontSize: 12, resize: 'none',
+            color: '#ddd', fontSize: 14, resize: 'none',
             fontFamily: "'Inter', sans-serif", outline: 'none',
             height: 60, lineHeight: 1.4
           }}
@@ -324,7 +324,7 @@ function NotesTab({ videoState, onSeek, onPlayPause }: { videoState: VideoState,
         <button type="submit" style={{
           background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
           border: 'none', borderRadius: 8, color: '#fff',
-          fontSize: 12, fontWeight: 600, padding: '10px 14px', cursor: 'pointer'
+          fontSize: 14, fontWeight: 600, padding: '10px 14px', cursor: 'pointer'
         }}>Add</button>
       </form>
     </div>
@@ -414,14 +414,14 @@ function TranscriptTab({ videoState, onSeek }: { videoState: VideoState, onSeek:
           width: '100%', background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 8, padding: '8px 10px',
-          color: '#fff', fontSize: 12, outline: 'none', marginBottom: 12
+          color: '#fff', fontSize: 14, outline: 'none', marginBottom: 12
         }}
       />
       <div ref={containerRef} style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 20, color: '#555', fontSize: 12 }}>Loading transcript...</div>
+          <div style={{ textAlign: 'center', padding: 20, color: '#9ca3af', fontSize: 14 }}>Loading transcript...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 20, color: '#555', fontSize: 12 }}>No matching lines.</div>
+          <div style={{ textAlign: 'center', padding: 20, color: '#9ca3af', fontSize: 14 }}>No matching lines.</div>
         ) : (
           filtered.map((seg: TranscriptSegment, idx: number) => {
             const isActive = segments.indexOf(seg) === activeIndex
@@ -431,13 +431,13 @@ function TranscriptTab({ videoState, onSeek }: { videoState: VideoState, onSeek:
                 ref={isActive ? activeLineRef : null}
                 onClick={() => onSeek(seg.start)}
                 style={{
-                  padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 12, lineHeight: 1.4,
+                  padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 14, lineHeight: 1.4,
                   backgroundColor: isActive ? 'rgba(99,102,241,0.15)' : 'transparent',
                   color: isActive ? '#818CF8' : '#aaa',
                   borderLeft: isActive ? '2px solid #6366F1' : '2px solid transparent'
                 }}
               >
-                <span style={{ fontWeight: 600, marginRight: 8, color: isActive ? '#6366F1' : '#555', fontSize: 10 }}>
+                <span style={{ fontWeight: 600, marginRight: 8, color: isActive ? '#818CF8' : '#9ca3af', fontSize: 11 }}>
                   [{formatTime(seg.start)}]
                 </span>
                 {seg.text}
@@ -453,7 +453,7 @@ function TranscriptTab({ videoState, onSeek }: { videoState: VideoState, onSeek:
 function AITab() {
   return (
     <div style={{ padding: 16 }}>
-      <div style={{ fontSize: 11, color: '#555', fontWeight: 600, marginBottom: 8 }}>AI ASSISTANT</div>
+      <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, marginBottom: 8 }}>AI ASSISTANT</div>
       <div style={{
         background: 'rgba(99,102,241,0.08)',
         border: '1px solid rgba(99,102,241,0.2)',
@@ -461,7 +461,7 @@ function AITab() {
       }}>
         <div style={{ fontSize: 24, marginBottom: 8 }}>🤖</div>
         <div style={{ fontSize: 13, color: '#aaa', marginBottom: 4 }}>AI Pack – Coming Soon</div>
-        <div style={{ fontSize: 11, color: '#555' }}>Add your Gemini API key in Settings to enable AI summaries, chat, flashcards, and quizzes.</div>
+        <div style={{ fontSize: 11, color: '#9ca3af' }}>Add your Gemini API key in Settings to enable AI summaries, chat, flashcards, and quizzes.</div>
       </div>
     </div>
   )
@@ -524,11 +524,11 @@ function WorkspaceTab({ videoState, onSeek }: { videoState: VideoState, onSeek: 
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 16, gap: 16 }}>
       {/* Bookmarks Section */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ fontSize: 11, color: '#555', fontWeight: 600, marginBottom: 8 }}>BOOKMARKS & CHAPTERS ({bookmarks.length})</div>
+        <div style={{ fontSize: 13, color: '#9ca3af', fontWeight: 600, marginBottom: 8 }}>BOOKMARKS & CHAPTERS ({bookmarks.length})</div>
         
         <div style={{ flex: 1, overflowY: 'auto', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {bookmarks.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 20, color: '#555', fontSize: 12 }}>
+            <div style={{ textAlign: 'center', padding: 20, color: '#9ca3af', fontSize: 14 }}>
               No bookmarks yet. Add key moments below!
             </div>
           ) : (
@@ -540,15 +540,15 @@ function WorkspaceTab({ videoState, onSeek }: { videoState: VideoState, onSeek: 
               }}>
                 <button onClick={() => onSeek(bm.timestamp)} style={{
                   background: 'rgba(99, 102, 241, 0.15)', border: 'none', borderRadius: 4,
-                  color: '#818CF8', fontSize: 10, fontWeight: 600, padding: '3px 8px', cursor: 'pointer',
+                  color: '#818CF8', fontSize: 11, fontWeight: 600, padding: '3px 8px', cursor: 'pointer',
                   flexShrink: 0
                 }}>
                   ⏱️ {formatTime(bm.timestamp)}
                 </button>
-                <div style={{ flex: 1, fontSize: 12, color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ flex: 1, fontSize: 14, color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {bm.label}
                 </div>
-                <button onClick={() => handleDeleteBookmark(bm.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 11, padding: 0 }}>🗑️</button>
+                <button onClick={() => handleDeleteBookmark(bm.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 12, padding: 0 }}>🗑️</button>
               </div>
             ))
           )}
@@ -564,14 +564,14 @@ function WorkspaceTab({ videoState, onSeek }: { videoState: VideoState, onSeek: 
               flex: 1, background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: 8, padding: '8px 10px',
-              color: '#fff', fontSize: 12, outline: 'none',
+              color: '#fff', fontSize: 14, outline: 'none',
               fontFamily: "'Inter', sans-serif"
             }}
           />
           <button type="submit" style={{
             background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
             border: 'none', borderRadius: 8, color: '#fff',
-            fontSize: 12, fontWeight: 600, padding: '8px 14px', cursor: 'pointer',
+            fontSize: 14, fontWeight: 600, padding: '8px 14px', cursor: 'pointer',
             whiteSpace: 'nowrap'
           }}>Save</button>
         </form>
@@ -581,7 +581,7 @@ function WorkspaceTab({ videoState, onSeek }: { videoState: VideoState, onSeek: 
 
       {/* Google Search Section */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ fontSize: 11, color: '#555', fontWeight: 600 }}>WEB SEARCH</div>
+        <div style={{ fontSize: 13, color: '#9ca3af', fontWeight: 600 }}>WEB SEARCH</div>
         <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 8 }}>
           <input
             type="text"
@@ -592,14 +592,14 @@ function WorkspaceTab({ videoState, onSeek }: { videoState: VideoState, onSeek: 
               flex: 1, background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: 8, padding: '8px 10px',
-              color: '#fff', fontSize: 12, outline: 'none',
+              color: '#fff', fontSize: 14, outline: 'none',
               fontFamily: "'Inter', sans-serif"
             }}
           />
           <button type="submit" style={{
             background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
             border: 'none', borderRadius: 8, color: '#fff',
-            fontSize: 12, fontWeight: 600, padding: '8px 14px', cursor: 'pointer'
+            fontSize: 14, fontWeight: 600, padding: '8px 14px', cursor: 'pointer'
           }}>Search</button>
         </form>
       </div>
