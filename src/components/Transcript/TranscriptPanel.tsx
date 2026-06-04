@@ -69,7 +69,7 @@ export function TranscriptPanel({ provider, currentTime, onSeek }: Props) {
             borderRadius: 6,
             padding: '6px 10px',
             color: '#fff',
-            fontSize: 12,
+            fontSize: 14,
             outline: 'none',
           }}
         />
@@ -88,11 +88,11 @@ export function TranscriptPanel({ provider, currentTime, onSeek }: Props) {
         }}
       >
         {loading ? (
-          <div style={{ color: '#888', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
+          <div style={{ color: '#888', fontSize: 14, textAlign: 'center', marginTop: 20 }}>
             Loading transcript...
           </div>
         ) : filteredSegments.length === 0 ? (
-          <div style={{ color: '#666', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
+          <div style={{ color: '#666', fontSize: 14, textAlign: 'center', marginTop: 20 }}>
             {segments.length === 0 ? 'No transcript available.' : 'No matches found.'}
           </div>
         ) : (
@@ -108,7 +108,7 @@ export function TranscriptPanel({ provider, currentTime, onSeek }: Props) {
                   padding: '6px 8px',
                   borderRadius: 6,
                   cursor: 'pointer',
-                  fontSize: 12,
+                  fontSize: 14,
                   lineHeight: '1.4',
                   backgroundColor: isActive ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
                   color: isActive ? '#818CF8' : '#ccc',
@@ -127,7 +127,7 @@ export function TranscriptPanel({ provider, currentTime, onSeek }: Props) {
                     fontWeight: 600,
                     marginRight: 8,
                     color: isActive ? '#6366F1' : '#666',
-                    fontSize: 10,
+                    fontSize: 12,
                   }}
                 >
                   [{timeStr}]

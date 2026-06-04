@@ -1,19 +1,22 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { detectProvider } from '../providers/registry'
-import { setupAutoFloat } from './autoFloat'
+import { setupAutoFloat, teardownAutoFloat } from './autoFloat'
 import { handleCommand, setShortcutProvider } from './shortcuts'
 import { enableFocusMode, disableFocusMode } from './focusMode'
 import { getSettings, type FloatSettings } from '../storage/settings'
 import { FloatingPlayer } from '../components/FloatingPlayer/FloatingPlayer'
+import { getTranscript } from '../services/transcript'
 
 let rootElement: HTMLDivElement | null = null
 let reactRoot: any = null
 let initialized = false
 let provider: any = null
 
+// ─── Custom Overlay (FloatingPlayer) ──────────────────────────────────────────
+
 function mountOverlay(currentProvider: any) {
-  if (rootElement) return
+  if (rootElement) return // already mounted
 
   rootElement = document.createElement('div')
   rootElement.id = 'floattube-root'
@@ -66,7 +69,8 @@ function unmountOverlay() {
   }
 }
 
-// Function to handle runtime initialization on-demand or on load
+// ─── Initialization ────────────────────────────────────────────────────────────
+
 async function ensureInitialized(): Promise<boolean> {
   if (initialized && provider?.getVideo()) return true
 
@@ -79,7 +83,7 @@ async function ensureInitialized(): Promise<boolean> {
   provider = detected
   setShortcutProvider(provider)
 
-  // Setup auto float triggers
+  // Setup auto-float event listeners (only attaches once due to guard inside)
   await setupAutoFloat()
 
   // Apply focus mode if enabled
@@ -89,40 +93,41 @@ async function ensureInitialized(): Promise<boolean> {
   }
 
   initialized = true
-  console.log(`[FloatTube AI] Initialized custom overlay controller on ${provider.name}`)
+  console.log(`[FloatTube AI] Initialized on ${provider.name}`)
   return true
 }
 
-if (!(window as any).__floattube_injected) {
-  (window as any).__floattube_injected = true
+function getResolvedVideoId(currentProvider: any): string {
+  return currentProvider.getVideoId?.() ?? `${window.location.pathname}${window.location.search}`
+}
 
-  // Register message listener immediately at top level to ensure immediate responsiveness (e.g. during dynamic injection)
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// ─── Message Listener ─────────────────────────────────────────────────────────
+
+if (!(window as any).__floattube_injected) {
+  ;(window as any).__floattube_injected = true
+
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     switch (message.type) {
+
+      // ── Keyboard shortcut commands (play-pause, vol-up, skip, toggle-float) ──
       case 'COMMAND': {
-        console.log('[FloatTube AI] Content script received command:', message.command)
+        console.log('[FloatTube AI] Command received:', message.command)
         if (initialized && provider) {
           if (message.command === 'play') {
             provider.play()
           } else if (message.command === 'pause') {
             provider.pause()
           } else {
-            console.log('[FloatTube AI] Executing command synchronously:', message.command)
             handleCommand(message.command)
           }
         } else {
-          console.log('[FloatTube AI] Content script not initialized. Initializing for command:', message.command)
           ensureInitialized().then((ok) => {
-            if (!ok || !provider) {
-              console.warn('[FloatTube AI] Failed to initialize for command:', message.command)
-              return
-            }
+            if (!ok || !provider) return
             if (message.command === 'play') {
               provider.play()
             } else if (message.command === 'pause') {
               provider.pause()
             } else {
-              console.log('[FloatTube AI] Executing command asynchronously:', message.command)
               handleCommand(message.command)
             }
           })
@@ -130,63 +135,66 @@ if (!(window as any).__floattube_injected) {
         break
       }
 
+      // ── Popup "Start Floating" button → native browser PiP ────────────────
       case 'TOGGLE_FLOAT': {
+        // Exit existing PiP first if active
         if (document.pictureInPictureElement) {
-          document.exitPictureInPicture().then(() => {
-            sendResponse({ success: true })
-          }).catch((err: any) => {
-            console.error('[FloatTube] Failed to exit PiP:', err)
-            sendResponse({ success: false })
-          })
-          return true
+          document.exitPictureInPicture()
+            .then(() => sendResponse({ success: true, isFloating: false }))
+            .catch((err: any) => {
+              console.error('[FloatTube] Failed to exit PiP:', err)
+              sendResponse({ success: false, isFloating: true })
+            })
+          return true // async response
         }
 
         const detected = detectProvider()
-        if (detected) {
-          provider = detected
-          setShortcutProvider(provider)
-          const video = provider.getVideo()
-          if (video) {
-            // Call synchronously to preserve user gesture from popup click / shortcut
-            video.requestPictureInPicture().then(() => {
-              sendResponse({ success: true })
-            }).catch((err: any) => {
-              console.error('[FloatTube] Failed to request PiP:', err)
-              sendResponse({ success: false })
-            })
+        if (!detected) {
+          sendResponse({ success: false, isFloating: false })
+          return true
+        }
 
-            // Enable auto picture-in-picture natively
-            try {
-              (video as any).autoPictureInPicture = true
-              video.setAttribute('autopictureinpicture', 'true')
-            } catch (e) {
-              // ignore
-            }
+        provider = detected
+        setShortcutProvider(provider)
+        const video = provider.getVideo()
 
-            // Trigger secondary settings loading in background
+        if (!video) {
+          sendResponse({ success: false, isFloating: false })
+          return true
+        }
+
+        // Request native PiP (must be called synchronously inside a user gesture handler)
+        video.requestPictureInPicture()
+          .then(() => {
+            sendResponse({ success: true, isFloating: true })
+            // Setup secondary features in background after PiP is active
             getSettings().then(settings => {
               if (settings.focusModeEnabled) {
                 enableFocusMode(provider.siteId)
               }
+              // Only call setupAutoFloat if not already attached
               setupAutoFloat()
             })
-          } else {
-            sendResponse({ success: false })
-          }
-        } else {
-          sendResponse({ success: false })
-        }
-        return true // Keep channel open
+          })
+          .catch((err: any) => {
+            console.error('[FloatTube] Failed to request PiP:', err)
+            sendResponse({ success: false, isFloating: false })
+          })
+
+        return true // async response
       }
 
-      case 'SEEK_TO':
+      // ── Seek to timestamp (from side panel / options) ──────────────────────
+      case 'SEEK_TO': {
         ensureInitialized().then((ok) => {
           if (!ok || !provider) return
           provider.seekTo(message.seconds)
         })
         break
+      }
 
-      case 'TOGGLE_FOCUS_MODE':
+      // ── Toggle Focus Mode ──────────────────────────────────────────────────
+      case 'TOGGLE_FOCUS_MODE': {
         ensureInitialized().then((ok) => {
           if (!ok || !provider) return
           const el = document.getElementById('floattube-focus-mode-css')
@@ -194,8 +202,10 @@ if (!(window as any).__floattube_injected) {
           else enableFocusMode(provider.siteId)
         })
         break
+      }
 
-      case 'GET_VIDEO_STATE':
+      // ── Get current video state (used by popup, side panel, options) ───────
+      case 'GET_VIDEO_STATE': {
         ensureInitialized().then((ok) => {
           if (!ok || !provider) {
             sendResponse({ state: null })
@@ -211,16 +221,35 @@ if (!(window as any).__floattube_injected) {
               playbackRate: v?.playbackRate ?? 1,
               siteId: provider.siteId,
               title: provider.getTitle(),
-              videoId: provider.getVideoId(),
+              videoId: getResolvedVideoId(provider),
               isFloating: !!document.pictureInPictureElement,
             }
           })
         })
-        return true // Keep channel open
+        return true // async response
+      }
+
+      case 'GET_TRANSCRIPT': {
+        ensureInitialized().then(async (ok) => {
+          if (!ok || !provider) {
+            sendResponse({ segments: [] })
+            return
+          }
+
+          try {
+            const segments = await getTranscript(provider)
+            sendResponse({ segments })
+          } catch (error) {
+            console.warn('[FloatTube] Failed to load transcript:', error)
+            sendResponse({ segments: [] })
+          }
+        })
+        return true
+      }
     }
   })
 
-  // Periodically send video state updates to synchronise options page, popup, side panel
+  // ── Periodic video state broadcast (syncs popup, side panel, options) ──────
   setInterval(() => {
     if (!initialized || !provider) return
     const v = provider.getVideo()
@@ -236,16 +265,16 @@ if (!(window as any).__floattube_injected) {
           playbackRate: v.playbackRate,
           siteId: provider.siteId,
           title: provider.getTitle(),
-          videoId: provider.getVideoId(),
+          videoId: getResolvedVideoId(provider),
           isFloating: !!document.pictureInPictureElement,
         }
       })
-    } catch (e) {
-      // Catch runtime context invalidated errors
+    } catch {
+      // Extension context may be invalidated on reload — suppress error
     }
   }, 1000)
 
-  // Wait for video element to be ready on initial load
+  // ── Poll until video element is ready ─────────────────────────────────────
   function pollInitialization(maxAttempts = 30) {
     let attempts = 0
     const interval = setInterval(() => {
@@ -259,16 +288,18 @@ if (!(window as any).__floattube_injected) {
 
   pollInitialization()
 
-  // Handle YouTube SPA navigation
+  // ── Handle YouTube SPA navigation (yt-navigate-finish resets state) ────────
   if (window.location.hostname.includes('youtube.com')) {
     document.addEventListener('yt-navigate-finish', () => {
       initialized = false
+      provider = null
+      teardownAutoFloat() // reset so listeners re-attach for new video
       setTimeout(() => pollInitialization(10), 1000)
     })
   }
 
-  // Listen for settings changes to apply Focus Mode instantly
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+  // ── Reactively apply Focus Mode when settings change ──────────────────────
+  if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName === 'sync' && changes.floatSettings) {
         const newSettings = changes.floatSettings.newValue as FloatSettings | undefined

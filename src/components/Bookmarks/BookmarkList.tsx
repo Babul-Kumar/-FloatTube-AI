@@ -80,7 +80,7 @@ export function BookmarkList({ provider, currentTime, onSeek }: Props) {
         style={{
           padding: '8px 12px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: 600,
           color: '#888',
         }}
@@ -100,7 +100,7 @@ export function BookmarkList({ provider, currentTime, onSeek }: Props) {
         }}
       >
         {bookmarks.length === 0 ? (
-          <div style={{ color: '#666', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
+          <div style={{ color: '#666', fontSize: 14, textAlign: 'center', marginTop: 20 }}>
             No bookmarks created yet.
           </div>
         ) : (
@@ -132,7 +132,7 @@ export function BookmarkList({ provider, currentTime, onSeek }: Props) {
                     backgroundColor: 'rgba(99, 102, 241, 0.15)',
                     borderRadius: 4,
                     color: '#818CF8',
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: 600,
                     padding: '2px 6px',
                     whiteSpace: 'nowrap',
@@ -140,7 +140,7 @@ export function BookmarkList({ provider, currentTime, onSeek }: Props) {
                 >
                   ⏱️ {formatTime(bm.timestamp)}
                 </span>
-                <span style={{ fontSize: 12, color: '#ddd', fontWeight: 500 }}>{bm.label}</span>
+                <span style={{ fontSize: 14, color: '#ddd', fontWeight: 500 }}>{bm.label}</span>
               </div>
               <button
                 onClick={() => handleDeleteBookmark(bm.id)}
@@ -148,7 +148,7 @@ export function BookmarkList({ provider, currentTime, onSeek }: Props) {
                   background: 'transparent',
                   border: 'none',
                   color: '#ef4444',
-                  fontSize: 11,
+                  fontSize: 13,
                   cursor: 'pointer',
                   opacity: 0.6,
                   padding: '2px 6px',
@@ -185,7 +185,7 @@ export function BookmarkList({ provider, currentTime, onSeek }: Props) {
             borderRadius: 6,
             padding: '6px 10px',
             color: '#fff',
-            fontSize: 12,
+            fontSize: 14,
             outline: 'none',
           }}
         />
@@ -196,7 +196,7 @@ export function BookmarkList({ provider, currentTime, onSeek }: Props) {
             border: 'none',
             borderRadius: 6,
             color: '#fff',
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 600,
             padding: '6px 12px',
             cursor: 'pointer',

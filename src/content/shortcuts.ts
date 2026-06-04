@@ -8,34 +8,44 @@ export function setShortcutProvider(p: VideoProvider) {
   pipManager.setProvider(p)
 }
 
-// Commands API: background sends messages to content script
+/**
+ * Handle keyboard shortcut commands forwarded from the background service worker.
+ * `toggle-float` uses native browser PiP; all others use the provider API directly.
+ */
 export function handleCommand(command: string) {
   switch (command) {
     case 'toggle-float':
+      // Guard: only attempt PiP if provider and video are available
+      if (!provider) return
       pipManager.togglePiP()
       break
+
     case 'play-pause':
       if (provider?.isPlaying()) provider.pause()
       else provider?.play()
       break
+
     case 'vol-up':
       if (provider) {
         const v = provider.getVideo()
         if (v) provider.setVolume(Math.min(1, v.volume + 0.1))
       }
       break
+
     case 'vol-down':
       if (provider) {
         const v = provider.getVideo()
         if (v) provider.setVolume(Math.max(0, v.volume - 0.1))
       }
       break
+
     case 'skip-forward':
       if (provider) {
         const v = provider.getVideo()
         if (v) provider.seekTo(v.currentTime + 10)
       }
       break
+
     case 'skip-back':
       if (provider) {
         const v = provider.getVideo()

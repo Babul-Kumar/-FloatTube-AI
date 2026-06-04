@@ -3,73 +3,125 @@ import { getSettings } from '../storage/settings'
 import { detectProvider } from '../providers/registry'
 
 let attached = false
+let cleanupFns: Array<() => void> = []
+const pendingTimeouts = new Set<number>()
 
+function setManagedTimeout(callback: () => void, delay: number) {
+  const timeoutId = window.setTimeout(() => {
+    pendingTimeouts.delete(timeoutId)
+    callback()
+  }, delay)
+  pendingTimeouts.add(timeoutId)
+}
+
+/**
+ * Set up event listeners for auto-float triggers.
+ * Guards against double-attachment with the `attached` flag.
+ * Each trigger checks that the video is actively playing before requesting PiP,
+ * and uses a 600 ms debounce so that brief focus changes (e.g. opening the
+ * extension popup) don't immediately trigger the float.
+ */
 export async function setupAutoFloat() {
   if (attached) return
   attached = true
+  cleanupFns = []
 
   const settings = await getSettings()
   const provider = detectProvider()
   const video = provider?.getVideo()
 
+  // Sync the native `autoPictureInPicture` attribute with the setting.
   if (video) {
-    if (settings.autoFloatOnTabChange) {
-      try {
-        (video as any).autoPictureInPicture = true
+    try {
+      ;(video as any).autoPictureInPicture = !!settings.autoFloatOnTabChange
+      if (settings.autoFloatOnTabChange) {
         video.setAttribute('autopictureinpicture', 'true')
-      } catch (e) {
-        console.warn('[FloatTube] Failed to set autoPictureInPicture attribute:', e)
-      }
-    } else {
-      try {
-        (video as any).autoPictureInPicture = false
+      } else {
         video.removeAttribute('autopictureinpicture')
-      } catch (e) {
-        // ignore
       }
+    } catch {
+      // Ignore; some browsers do not support this attribute.
     }
   }
 
-  // Tab switch / hidden
   if (settings.autoFloatOnTabChange) {
-    document.addEventListener('visibilitychange', async () => {
-      if (document.hidden && !pipManager.isPiPActive()) {
+    const onVisibilityChange = () => {
+      if (!document.hidden) return
+
+      const currentProvider = detectProvider()
+      const currentVideo = currentProvider?.getVideo()
+      if (!currentVideo || currentVideo.paused || currentVideo.ended) return
+
+      let cancelled = false
+      const cancelIfVisible = () => {
+        cancelled = true
+      }
+
+      document.addEventListener('visibilitychange', cancelIfVisible, { once: true })
+
+      setManagedTimeout(async () => {
+        document.removeEventListener('visibilitychange', cancelIfVisible)
+        if (cancelled || !document.hidden || pipManager.isPiPActive()) return
+
         try {
           await pipManager.requestPiP()
-        } catch (e) {
-          // Suppress browser gesture restriction warnings on visibilitychange
+        } catch {
+          // Suppress; browser gesture requirements can still block PiP.
         }
-      }
-    })
+      }, 600)
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    cleanupFns.push(() => document.removeEventListener('visibilitychange', onVisibilityChange))
   }
 
-  // Window blur (minimize or alt+tab away from Chrome)
   if (settings.autoFloatOnWindowBlur) {
-    window.addEventListener('blur', async () => {
-      if (!pipManager.isPiPActive()) {
+    const onBlur = () => {
+      const currentProvider = detectProvider()
+      const currentVideo = currentProvider?.getVideo()
+      if (!currentVideo || currentVideo.paused || currentVideo.ended) return
+
+      setManagedTimeout(async () => {
+        if (document.hasFocus() || pipManager.isPiPActive()) return
+
         try {
           await pipManager.requestPiP()
-        } catch (e) {
-          // Suppress
+        } catch {
+          // Suppress.
         }
-      }
-    })
+      }, 600)
+    }
+
+    window.addEventListener('blur', onBlur)
+    cleanupFns.push(() => window.removeEventListener('blur', onBlur))
   }
 
-  // Page unload / navigation (e.g. clicking a link)
   if (settings.autoFloatOnPageHide) {
-    window.addEventListener('pagehide', async () => {
-      if (!pipManager.isPiPActive()) {
-        try {
-          await pipManager.requestPiP()
-        } catch (e) {
-          // Suppress
-        }
+    const onPageHide = async () => {
+      const currentProvider = detectProvider()
+      const currentVideo = currentProvider?.getVideo()
+      if (!currentVideo || currentVideo.paused || currentVideo.ended) return
+      if (pipManager.isPiPActive()) return
+
+      try {
+        await pipManager.requestPiP()
+      } catch {
+        // Suppress.
       }
-    })
+    }
+
+    window.addEventListener('pagehide', onPageHide)
+    cleanupFns.push(() => window.removeEventListener('pagehide', onPageHide))
   }
 }
 
+/** Reset auto-float listeners so SPA navigation can re-attach them cleanly. */
 export function teardownAutoFloat() {
+  cleanupFns.forEach((cleanup) => cleanup())
+  cleanupFns = []
+
+  pendingTimeouts.forEach((timeoutId) => window.clearTimeout(timeoutId))
+  pendingTimeouts.clear()
+
   attached = false
 }

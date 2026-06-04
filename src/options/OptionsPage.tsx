@@ -171,10 +171,9 @@ export default function OptionsPage() {
           </button>
         </div>
         {[
-          ['Alt + P', 'Toggle Float Mode'],
-          ['Alt + Space', 'Play / Pause'],
-          ['Alt + →', 'Skip Forward 10s'],
-          ['Alt + ←', 'Skip Backward 10s'],
+          ['Ctrl + Shift + 5', 'Toggle Float Mode'],
+          ['Ctrl + Shift + 6', 'Play / Pause'],
+          ['Ctrl + Shift + Y', 'Open Side Panel'],
         ].map(([key, desc]) => (
           <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
             <span style={{ fontSize: 12, color: '#aaa' }}>{desc}</span>

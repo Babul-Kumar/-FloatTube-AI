@@ -50,7 +50,7 @@ export function MiniWorkspace({ provider, currentTime, onSeek }: Props) {
               border: 'none',
               borderBottom: activeSubTab === tab ? '2px solid #6366F1' : '2px solid transparent',
               color: activeSubTab === tab ? '#818CF8' : '#777',
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 600,
               textTransform: 'uppercase',
               cursor: 'pointer',
@@ -88,7 +88,7 @@ export function MiniWorkspace({ provider, currentTime, onSeek }: Props) {
               color: '#fff',
             }}
           >
-            <div style={{ fontSize: 11, color: '#aaa', fontWeight: 500 }}>
+            <div style={{ fontSize: 13, color: '#aaa', fontWeight: 500 }}>
               Search the web without interrupting your video:
             </div>
             <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 6 }}>
@@ -104,7 +104,7 @@ export function MiniWorkspace({ provider, currentTime, onSeek }: Props) {
                   borderRadius: 6,
                   padding: '6px 10px',
                   color: '#fff',
-                  fontSize: 12,
+                  fontSize: 14,
                   outline: 'none',
                 }}
               />
@@ -115,7 +115,7 @@ export function MiniWorkspace({ provider, currentTime, onSeek }: Props) {
                   border: 'none',
                   borderRadius: 6,
                   color: '#fff',
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: 600,
                   padding: '6px 12px',
                   cursor: 'pointer',
@@ -124,7 +124,7 @@ export function MiniWorkspace({ provider, currentTime, onSeek }: Props) {
                 Go
               </button>
             </form>
-            <div style={{ fontSize: 10, color: '#555', marginTop: 10 }}>
+            <div style={{ fontSize: 12, color: '#555', marginTop: 10 }}>
               * Results will open in a new tab so you can browse resources alongside your study session.
             </div>
           </div>

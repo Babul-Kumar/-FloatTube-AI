@@ -22,17 +22,15 @@ const SITE_LABELS: Record<string, string> = {
   generic: 'HTML5 Video',
 }
 
-const KBD: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.1)',
-  border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: 4, padding: '1px 5px',
-  fontFamily: 'monospace', fontSize: 10, color: '#aaa',
+function isScriptableUrl(url?: string) {
+  return !!url && (url.startsWith('http://') || url.startsWith('https://'))
 }
 
 export default function Popup() {
   const [settings, setSettings] = useState<FloatSettings | null>(null)
   const [detectedSite, setDetectedSite] = useState<string | null>(null)
   const [isFloating, setIsFloating] = useState(false)
+  const [canAttemptFloat, setCanAttemptFloat] = useState(false)
   const [activeTab, setActiveTab] = useState<'main' | 'settings'>('main')
 
   useEffect(() => {
@@ -41,6 +39,8 @@ export default function Popup() {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
       chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
         if (tab?.id) {
+          setCanAttemptFloat(isScriptableUrl(tab.url))
+
           // Pre-detect based on URL
           if (tab.url) {
             const url = tab.url
@@ -61,14 +61,24 @@ export default function Popup() {
               return
             }
             if (response?.state?.siteId) setDetectedSite(response.state.siteId)
+            if (typeof response?.state?.isFloating === 'boolean') setIsFloating(response.state.isFloating)
+            setCanAttemptFloat(true)
           })
         }
       })
     } else {
       // Fallback detected site for standalone browser testing
       setDetectedSite('youtube')
+      setCanAttemptFloat(true)
     }
   }, [])
+
+  const updateSettings = async (patch: Partial<FloatSettings>) => {
+    if (!settings) return
+    const updated = { ...settings, ...patch }
+    setSettings(updated)
+    await saveSettings(patch)
+  }
 
   const toggleFloat = () => {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -98,13 +108,26 @@ export default function Popup() {
                   }
                   // Message the newly injected script after a small delay
                   setTimeout(() => {
-                    chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_FLOAT' })
-                    setIsFloating(true)
+                    chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_FLOAT' }, (injectedResponse) => {
+                      if (chrome.runtime.lastError) {
+                        console.error('[FloatTube] Failed to toggle float after injection:', chrome.runtime.lastError)
+                        setIsFloating(false)
+                        return
+                      }
+                      setIsFloating(!!injectedResponse?.isFloating)
+                      if (injectedResponse?.success) {
+                        setDetectedSite(current => current ?? 'generic')
+                        setCanAttemptFloat(true)
+                      }
+                    })
                   }, 400)
                 })
               })
             } else {
-              setIsFloating(f => !f)
+              setIsFloating(!!response.isFloating)
+              if (response.success) {
+                setCanAttemptFloat(true)
+              }
             }
           })
         }
@@ -115,15 +138,16 @@ export default function Popup() {
   }
 
   const toggleSetting = async (key: keyof FloatSettings) => {
-    if (!settings) return
-    const newVal = !settings[key as keyof FloatSettings]
-    const updated = { ...settings, [key]: newVal } as FloatSettings
-    setSettings(updated)
-    await saveSettings({ [key]: newVal })
+    if (!settings || typeof settings[key] !== 'boolean') return
+    await updateSettings({ [key]: !settings[key] } as Partial<FloatSettings>)
   }
 
   const siteColor = detectedSite ? SITE_COLORS[detectedSite] ?? '#6366F1' : '#6366F1'
-  const siteLabel = detectedSite ? SITE_LABELS[detectedSite] ?? 'Unknown' : 'No video detected'
+  const siteLabel = detectedSite
+    ? SITE_LABELS[detectedSite] ?? 'Unknown'
+    : canAttemptFloat
+      ? 'Try active tab'
+      : 'No video detected'
 
   return (
     <div style={{
@@ -194,6 +218,7 @@ export default function Popup() {
               isFloating={isFloating}
               siteColor={siteColor}
               detectedSite={detectedSite}
+              canAttemptFloat={canAttemptFloat}
               onToggleFloat={toggleFloat}
               onToggleSetting={toggleSetting}
             />
@@ -203,7 +228,11 @@ export default function Popup() {
             initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.15 }}
           >
-            <SettingsPanel settings={settings} onToggle={toggleSetting} />
+            <SettingsPanel
+              settings={settings}
+              onToggle={toggleSetting}
+              onSelectPosition={(position) => updateSettings({ defaultPosition: position })}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -223,11 +252,12 @@ function TabButton({ active, onClick, children }: { active: boolean, onClick: ()
   )
 }
 
-function MainPanel({ settings, isFloating, siteColor, detectedSite, onToggleFloat, onToggleSetting }: {
+function MainPanel({ settings, isFloating, siteColor, detectedSite, canAttemptFloat, onToggleFloat, onToggleSetting }: {
   settings: FloatSettings | null
   isFloating: boolean
   siteColor: string
   detectedSite: string | null
+  canAttemptFloat: boolean
   onToggleFloat: () => void
   onToggleSetting: (key: keyof FloatSettings) => void
 }) {
@@ -237,17 +267,17 @@ function MainPanel({ settings, isFloating, siteColor, detectedSite, onToggleFloa
       <motion.button
         whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
         onClick={onToggleFloat}
-        disabled={!detectedSite}
+        disabled={!canAttemptFloat}
         style={{
           width: '100%', padding: '14px',
           background: isFloating
             ? 'linear-gradient(135deg, #ef4444, #dc2626)'
             : `linear-gradient(135deg, ${siteColor}, #6366F1)`,
-          border: 'none', borderRadius: 14, cursor: detectedSite ? 'pointer' : 'not-allowed',
+          border: 'none', borderRadius: 14, cursor: canAttemptFloat ? 'pointer' : 'not-allowed',
           color: '#fff', fontSize: 15, fontWeight: 700,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           boxShadow: `0 8px 24px ${isFloating ? '#ef444444' : siteColor + '44'}`,
-          opacity: detectedSite ? 1 : 0.5,
+          opacity: canAttemptFloat ? 1 : 0.5,
           transition: 'all 0.2s',
           marginBottom: 20,
         }}
@@ -349,12 +379,17 @@ function MainPanel({ settings, isFloating, siteColor, detectedSite, onToggleFloa
   )
 }
 
-function SettingsPanel({ settings, onToggle }: {
+function SettingsPanel({ settings, onToggle, onSelectPosition }: {
   settings: FloatSettings | null
   onToggle: (key: keyof FloatSettings) => void
+  onSelectPosition: (position: FloatSettings['defaultPosition']) => void
 }) {
   const [apiKey, setApiKey] = useState(settings?.geminiApiKey ?? '')
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setApiKey(settings?.geminiApiKey ?? '')
+  }, [settings?.geminiApiKey])
 
   const saveApiKey = async () => {
     await saveSettings({ geminiApiKey: apiKey })
@@ -367,13 +402,20 @@ function SettingsPanel({ settings, onToggle }: {
       <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Default Position</div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
         {(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).map(pos => (
-          <div key={pos} style={{
-            flex: 1, padding: '6px 2px',
-            background: settings?.defaultPosition === pos ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)',
-            border: `1px solid ${settings?.defaultPosition === pos ? '#6366F1' : 'transparent'}`,
-            borderRadius: 8, cursor: 'pointer',
-            fontSize: 9, textAlign: 'center', color: '#aaa',
-          }}>{pos.replace('-', '\n')}</div>
+          <button
+            key={pos}
+            onClick={() => onSelectPosition(pos)}
+            style={{
+              flex: 1, padding: '6px 2px',
+              background: settings?.defaultPosition === pos ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)',
+              border: `1px solid ${settings?.defaultPosition === pos ? '#6366F1' : 'transparent'}`,
+              borderRadius: 8, cursor: 'pointer',
+              fontSize: 9, textAlign: 'center', color: '#aaa',
+              whiteSpace: 'pre-line',
+            }}
+          >
+            {pos.replace('-', '\n')}
+          </button>
         ))}
       </div>
 

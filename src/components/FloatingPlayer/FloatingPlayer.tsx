@@ -29,7 +29,7 @@ export function FloatingPlayer({ provider, onClose, initialSize = 'medium' }: Pr
   const [isDragging, setIsDragging] = useState(false)
   const [opacity, setOpacity] = useState(1)
   const [currentSize, setCurrentSize] = useState(initialSize)
-  const [activeTab, setActiveTab] = useState<'none' | 'notes' | 'transcript' | 'workspace'>('notes')
+  const [activeTab, setActiveTab] = useState<'none' | 'notes' | 'transcript' | 'workspace'>('none')
   
   // State for synced video state
   const [isPlaying, setIsPlaying] = useState(false)

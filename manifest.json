@@ -80,11 +80,11 @@
       "description": "Open FloatTube AI Side Panel"
     },
     "toggle-float": {
-      "suggested_key": { "default": "Alt+P" },
+      "suggested_key": { "default": "Ctrl+Shift+5" },
       "description": "Toggle Float Mode"
     },
     "play-pause": {
-      "suggested_key": { "default": "Alt+Space" },
+      "suggested_key": { "default": "Ctrl+Shift+6" },
       "description": "Play / Pause"
     }
   },

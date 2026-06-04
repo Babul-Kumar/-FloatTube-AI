@@ -84,11 +84,12 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
   const exportAsPDF = () => {
     const doc = new jsPDF()
     const title = provider.getTitle()
-    doc.setFont('Helvetica', 'bold')
+    doc.setFont('helvetica', 'bold')
     doc.setFontSize(16)
-    doc.text(`Notes: ${title.substring(0, 50)}...`, 14, 20)
+    const titleText = title.length > 50 ? title.substring(0, 50) + '...' : title
+    doc.text(`Notes: ${titleText}`, 14, 20)
     
-    doc.setFont('Helvetica', 'normal')
+    doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
     doc.setTextColor(100, 100, 100)
     doc.text(`Source: ${window.location.href.substring(0, 80)}`, 14, 28)
@@ -103,10 +104,10 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
         y = 20
       }
       const timeStr = `[${formatTime(note.timestamp)}]`
-      doc.setFont('Helvetica', 'bold')
+      doc.setFont('helvetica', 'bold')
       doc.text(timeStr, 14, y)
       
-      doc.setFont('Helvetica', 'normal')
+      doc.setFont('helvetica', 'normal')
       const splitText = doc.splitTextToSize(note.content, 150)
       doc.text(splitText, 35, y)
       y += (splitText.length * 5) + 4
@@ -137,7 +138,7 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
           gap: 6,
         }}
       >
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#888' }}>NOTES ({notes.length})</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#888' }}>NOTES ({notes.length})</span>
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={exportAsMarkdown} style={utilBtnStyle} title="Export as Markdown">
             📄 MD
@@ -160,7 +161,7 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
         }}
       >
         {notes.length === 0 ? (
-          <div style={{ color: '#666', fontSize: 12, textAlign: 'center', marginTop: 20 }}>
+          <div style={{ color: '#666', fontSize: 14, textAlign: 'center', marginTop: 20 }}>
             No notes taken yet. Take a note below!
           </div>
         ) : (
@@ -190,7 +191,7 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
                     border: 'none',
                     borderRadius: 4,
                     color: '#818CF8',
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: 600,
                     padding: '2px 6px',
                     cursor: 'pointer',
@@ -204,7 +205,7 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
                     background: 'transparent',
                     border: 'none',
                     color: '#ef4444',
-                    fontSize: 11,
+                    fontSize: 13,
                     cursor: 'pointer',
                     opacity: 0.6,
                   }}
@@ -214,7 +215,7 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
                   🗑️
                 </button>
               </div>
-              <div style={{ fontSize: 12, color: '#ddd', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
+              <div style={{ fontSize: 14, color: '#ddd', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
                 {note.content}
               </div>
             </div>
@@ -251,7 +252,7 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
             borderRadius: 6,
             padding: '6px 10px',
             color: '#fff',
-            fontSize: 12,
+            fontSize: 14,
             outline: 'none',
             resize: 'none',
             fontFamily: 'Inter, sans-serif',
@@ -265,7 +266,7 @@ export function NotesPanel({ provider, currentTime, onSeek }: Props) {
             border: 'none',
             borderRadius: 6,
             color: '#fff',
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 600,
             padding: '6px 12px',
             height: 28,
@@ -287,7 +288,7 @@ const utilBtnStyle: React.CSSProperties = {
   border: '1px solid rgba(255, 255, 255, 0.1)',
   borderRadius: 4,
   color: '#ccc',
-  fontSize: 9,
+  fontSize: 11,
   fontWeight: 600,
   padding: '3px 8px',
   cursor: 'pointer',

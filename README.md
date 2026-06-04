@@ -237,8 +237,8 @@ Current behavior:
 Chrome currently registers these commands from `manifest.json`:
 
 - `Ctrl+Shift+Y`: open the FloatTube AI side panel
-- `Alt+P`: toggle floating mode
-- `Alt+Space`: play or pause the current video
+- `Ctrl+Shift+5`: toggle floating mode
+- `Ctrl+Shift+6`: play or pause the current video
 
 To change shortcuts:
 
