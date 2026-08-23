@@ -1,8 +1,18 @@
 import { getSettings } from '../../storage/settings'
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
-const DEFAULT_MODEL = 'gemini-2.0-flash'
-const FALLBACK_MODEL = 'gemini-1.5-flash'
+
+const CANDIDATE_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite-preview-02-05',
+  'gemini-1.5-flash',
+  'gemini-1.5-flash-latest',
+  'gemini-1.5-pro',
+  'gemini-pro',
+]
+
+let activeWorkingModel: string | null = null
 
 interface GeminiRequestOptions {
   prompt?: string
@@ -73,7 +83,7 @@ export function extractJSON<T = any>(rawText: string): T {
 }
 
 /**
- * Executes a call to the Google Gemini API with error handling and fallback models.
+ * Executes a call to the Google Gemini API with multi-model fallback and error recovery.
  */
 export async function callGemini(options: GeminiRequestOptions): Promise<string> {
   const settings = await getSettings()
@@ -81,7 +91,7 @@ export async function callGemini(options: GeminiRequestOptions): Promise<string>
 
   if (!apiKey) {
     throw new GeminiError(
-      'Gemini API key is missing. Please add your API key in Settings (get a free key at ai.google.dev).',
+      'Gemini API key is missing. Please add your API key in Settings (get a free key at https://aistudio.google.com/app/apikey).',
       'MISSING_API_KEY',
     )
   }
@@ -107,16 +117,30 @@ export async function callGemini(options: GeminiRequestOptions): Promise<string>
     }
   }
 
-  // Try primary model, fallback if model unavailable
-  try {
-    return await executeRequest(DEFAULT_MODEL, apiKey, payload)
-  } catch (error: any) {
-    if (error?.status === 404 || error?.code === 'MODEL_NOT_FOUND') {
-      console.warn(`[FloatTube AI] ${DEFAULT_MODEL} unavailable, retrying with ${FALLBACK_MODEL}...`)
-      return await executeRequest(FALLBACK_MODEL, apiKey, payload)
+  // If a known working model was already discovered in this session, try it first
+  const modelsToTry = activeWorkingModel
+    ? [activeWorkingModel, ...CANDIDATE_MODELS.filter((m) => m !== activeWorkingModel)]
+    : CANDIDATE_MODELS
+
+  let lastError: any = null
+
+  for (const model of modelsToTry) {
+    try {
+      const result = await executeRequest(model, apiKey, payload)
+      activeWorkingModel = model
+      return result
+    } catch (error: any) {
+      lastError = error
+      // If 404 (model not found), proceed to try the next model candidate
+      if (error?.status === 404 || error?.code === 'MODEL_NOT_FOUND') {
+        continue
+      }
+      // For authentication, permission, or quota errors, rethrow immediately
+      throw error
     }
-    throw error
   }
+
+  throw lastError ?? new GeminiError('Failed to generate content with Gemini.', 'GENERATION_FAILED')
 }
 
 async function executeRequest(model: string, apiKey: string, payload: any): Promise<string> {
@@ -151,7 +175,7 @@ async function executeRequest(model: string, apiKey: string, payload: any): Prom
     if (response.status === 400) {
       if (message.includes('API_KEY_INVALID') || message.includes('API key not valid')) {
         throw new GeminiError(
-          'Invalid Gemini API key. Please check your API key in Settings.',
+          'Invalid Gemini API key. Please check your API key at https://aistudio.google.com/app/apikey.',
           'INVALID_API_KEY',
           400,
         )
@@ -161,7 +185,7 @@ async function executeRequest(model: string, apiKey: string, payload: any): Prom
 
     if (response.status === 403) {
       throw new GeminiError(
-        'Gemini API key does not have permission or billing is blocked. Check your Google AI Studio console.',
+        'Gemini API key does not have permission or billing is blocked. Check your Google AI Studio project settings.',
         'FORBIDDEN',
         403,
       )
@@ -176,7 +200,7 @@ async function executeRequest(model: string, apiKey: string, payload: any): Prom
     }
 
     if (response.status === 404) {
-      throw new GeminiError(`Model ${model} not found or unsupported.`, 'MODEL_NOT_FOUND', 404)
+      throw new GeminiError(message || `Model ${model} not found or unsupported.`, 'MODEL_NOT_FOUND', 404)
     }
 
     throw new GeminiError(`Gemini API error (${response.status}): ${message}`, 'API_ERROR', response.status)
@@ -189,7 +213,7 @@ async function executeRequest(model: string, apiKey: string, payload: any): Prom
     const finishReason = result.candidates?.[0]?.finishReason
     if (finishReason === 'SAFETY') {
       throw new GeminiError(
-        'The response was flagged by safety filters. Please try rephrasing or using a different section.',
+        'The response was flagged by safety filters. Please try rephrasing.',
         'SAFETY_FLAG',
       )
     }
@@ -200,7 +224,7 @@ async function executeRequest(model: string, apiKey: string, payload: any): Prom
 }
 
 /**
- * Validates a Gemini API key by performing a lightweight test generation call.
+ * Validates a Gemini API key by checking ListModels and performing a lightweight test generation call.
  */
 export async function testGeminiApiKey(apiKey: string): Promise<{ success: boolean; message: string }> {
   const cleanKey = apiKey.trim()
@@ -209,16 +233,46 @@ export async function testGeminiApiKey(apiKey: string): Promise<{ success: boole
   }
 
   try {
-    const text = await callGemini({
-      apiKeyOverride: cleanKey,
-      prompt: 'Respond with a single word: "connected"',
-      temperature: 0.1,
+    // 1. Check ListModels to discover available models for this specific key/region
+    const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(cleanKey)}`
+    const listRes = await fetch(listUrl)
+
+    if (!listRes.ok) {
+      let errBody: any = null
+      try {
+        errBody = await listRes.json()
+      } catch {}
+      const errMsg = errBody?.error?.message || `HTTP error ${listRes.status}`
+
+      if (listRes.status === 400 && (errMsg.includes('API_KEY_INVALID') || errMsg.includes('API key not valid'))) {
+        return { success: false, message: 'Invalid API key. Please check your API key from Google AI Studio.' }
+      }
+      return { success: false, message: `Gemini API verification failed: ${errMsg}` }
+    }
+
+    const listData = await listRes.json()
+    const availableModels: string[] = (listData.models || [])
+      .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+      .map((m: any) => m.name.replace(/^models\//, ''))
+
+    // Pick best available model from available list or candidate list
+    const bestModel =
+      CANDIDATE_MODELS.find((m) => availableModels.includes(m)) ||
+      availableModels[0] ||
+      'gemini-2.0-flash'
+
+    // 2. Perform test generation with the discovered model
+    await executeRequest(bestModel, cleanKey, {
+      contents: [{ role: 'user', parts: [{ text: 'Respond with the word: connected' }] }],
+      generationConfig: { temperature: 0.1 },
     })
 
-    if (text && text.toLowerCase().includes('connected')) {
-      return { success: true, message: 'Connection successful! Gemini API is active.' }
+    activeWorkingModel = bestModel
+
+    return {
+      success: true,
+      message: `Connection successful! Active model: ${bestModel}`,
     }
-    return { success: true, message: 'Connection verified with Google Gemini.' }
   } catch (error: any) {
     return {
       success: false,
