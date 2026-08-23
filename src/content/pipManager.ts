@@ -2,6 +2,7 @@ import type { VideoProvider } from '../providers/VideoProvider'
 
 export class PiPManager {
   private provider: VideoProvider | null = null
+  private currentVideo: HTMLVideoElement | null = null
   private onEnterCallbacks: Array<() => void> = []
   private onLeaveCallbacks: Array<() => void> = []
 
@@ -19,16 +20,19 @@ export class PiPManager {
       return false
     }
 
-    // Netflix has EME restrictions
-    if (video.classList.contains('nfp-video') || window.location.hostname.includes('netflix')) {
-      console.warn('[FloatTube] Netflix PiP may be restricted')
+    // Attach listeners only once per video element
+    if (this.currentVideo !== video) {
+      if (this.currentVideo) {
+        this.currentVideo.removeEventListener('enterpictureinpicture', this.handleEnter)
+        this.currentVideo.removeEventListener('leavepictureinpicture', this.handleLeave)
+      }
+      this.currentVideo = video
+      video.addEventListener('enterpictureinpicture', this.handleEnter)
+      video.addEventListener('leavepictureinpicture', this.handleLeave)
     }
 
     try {
-      const pipWindow = await video.requestPictureInPicture()
-      pipWindow.addEventListener('resize', this.handleResize)
-      video.addEventListener('enterpictureinpicture', this.handleEnter)
-      video.addEventListener('leavepictureinpicture', this.handleLeave)
+      await video.requestPictureInPicture()
       return true
     } catch (err) {
       console.error('[FloatTube] PiP request failed:', err)
@@ -58,12 +62,15 @@ export class PiPManager {
     }
   }
 
-  onEnter(cb: () => void) { this.onEnterCallbacks.push(cb) }
-  onLeave(cb: () => void) { this.onLeaveCallbacks.push(cb) }
+  onEnter(cb: () => void) {
+    this.onEnterCallbacks.push(cb)
+  }
+  onLeave(cb: () => void) {
+    this.onLeaveCallbacks.push(cb)
+  }
 
-  private handleEnter = () => this.onEnterCallbacks.forEach(cb => cb())
-  private handleLeave = () => this.onLeaveCallbacks.forEach(cb => cb())
-  private handleResize = () => {}
+  private handleEnter = () => this.onEnterCallbacks.forEach((cb) => cb())
+  private handleLeave = () => this.onLeaveCallbacks.forEach((cb) => cb())
 }
 
 export const pipManager = new PiPManager()

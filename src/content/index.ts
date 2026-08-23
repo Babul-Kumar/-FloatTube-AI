@@ -16,7 +16,10 @@ let provider: any = null
 // ─── Custom Overlay (FloatingPlayer) ──────────────────────────────────────────
 
 function mountOverlay(currentProvider: any) {
-  if (rootElement) return // already mounted
+  if (rootElement) {
+    unmountOverlay()
+    return
+  }
 
   rootElement = document.createElement('div')
   rootElement.id = 'floattube-root'
@@ -111,7 +114,6 @@ if (!(window as any).__floattube_injected) {
 
       // ── Keyboard shortcut commands (play-pause, vol-up, skip, toggle-float) ──
       case 'COMMAND': {
-        console.log('[FloatTube AI] Command received:', message.command)
         if (initialized && provider) {
           if (message.command === 'play') {
             provider.play()
@@ -163,16 +165,14 @@ if (!(window as any).__floattube_injected) {
           return true
         }
 
-        // Request native PiP (must be called synchronously inside a user gesture handler)
+        // Request native PiP
         video.requestPictureInPicture()
           .then(() => {
             sendResponse({ success: true, isFloating: true })
-            // Setup secondary features in background after PiP is active
             getSettings().then(settings => {
               if (settings.focusModeEnabled) {
                 enableFocusMode(provider.siteId)
               }
-              // Only call setupAutoFloat if not already attached
               setupAutoFloat()
             })
           })
@@ -182,6 +182,18 @@ if (!(window as any).__floattube_injected) {
           })
 
         return true // async response
+      }
+
+      case 'TOGGLE_OVERLAY': {
+        ensureInitialized().then((ok) => {
+          if (!ok || !provider) {
+            sendResponse({ success: false })
+            return
+          }
+          mountOverlay(provider)
+          sendResponse({ success: true, isOverlayOpen: !!rootElement })
+        })
+        return true
       }
 
       // ── Seek to timestamp (from side panel / options) ──────────────────────
@@ -223,6 +235,7 @@ if (!(window as any).__floattube_injected) {
               title: provider.getTitle(),
               videoId: getResolvedVideoId(provider),
               isFloating: !!document.pictureInPictureElement,
+              isOverlayOpen: !!rootElement,
             }
           })
         })
@@ -267,6 +280,7 @@ if (!(window as any).__floattube_injected) {
           title: provider.getTitle(),
           videoId: getResolvedVideoId(provider),
           isFloating: !!document.pictureInPictureElement,
+          isOverlayOpen: !!rootElement,
         }
       })
     } catch {
@@ -293,7 +307,7 @@ if (!(window as any).__floattube_injected) {
     document.addEventListener('yt-navigate-finish', () => {
       initialized = false
       provider = null
-      teardownAutoFloat() // reset so listeners re-attach for new video
+      teardownAutoFloat()
       setTimeout(() => pollInitialization(10), 1000)
     })
   }

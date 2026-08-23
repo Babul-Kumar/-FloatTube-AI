@@ -29,6 +29,7 @@ export default defineConfig({
   build: {
     target: 'esnext',
     sourcemap: false,
+    modulePreload: false,
     rollupOptions: {
       // Ensure React is not treated as external in any build
       external: [],
