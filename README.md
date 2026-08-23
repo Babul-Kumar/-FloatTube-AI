@@ -2,13 +2,14 @@
 
 > **Turn any video into a distraction-free, AI-powered learning workspace.**
 
-FloatTube AI is a production-grade Chromium Extension (Manifest V3) that combines native Picture-in-Picture playback with an intelligent study workspace. Take timestamped notes, save bookmarks, search transcripts, and supercharge your learning with Google Gemini AI summaries, transcript-grounded Q&A, active-recall flashcards, and automated quizzes.
+FloatTube AI is a production-grade Chromium Extension (Manifest V3) that combines native Picture-in-Picture playback with an intelligent study workspace. Take timestamped notes, save bookmarks, search live transcripts, and supercharge your learning with Google Gemini AI summaries, transcript-grounded Q&A, active-recall flashcards, and automated quizzes.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension%20MV3-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![React](https://img.shields.io/badge/React-19-61dafb)
-![Google Gemini](https://img.shields.io/badge/Gemini-2.0%20Flash-8e75ff)
+![Google Gemini](https://img.shields.io/badge/Gemini-2.5%20%7C%202.0%20%7C%201.5-8e75ff)
+![Vitest](https://img.shields.io/badge/Tests-15%20Passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
 ---
@@ -21,11 +22,12 @@ FloatTube AI is a production-grade Chromium Extension (Manifest V3) that combine
 * **Playback Shortcuts**: Global keyboard shortcuts to toggle float and play/pause from anywhere.
 
 ### ✨ 2. Google Gemini AI Study Studio
+* **Dynamic Model Auto-Discovery**: Automatically queries Google AI Studio and connects to the best active model available for your key (`gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`).
 * **Executive Summary**: Generates a concise overview, difficulty level rating, and core conceptual breakdown from the video transcript.
 * **Key Takeaways**: 5–10 actionable bullet points summarizing key principles.
-* **Grounded Transcript Chat**: Multi-turn conversational assistant grounded directly in the video transcript. Ask questions like *"Explain this concept simply"*, *"Give a practical code example"*, or *"What did the instructor say about X?"*.
-* **Active-Recall Flashcards**: Interactive 3D flip card viewer with question/answer recall, shuffle, progress tracker, and difficulty tags.
-* **Multiple-Choice Quiz**: Test comprehension with automated 5–10 question quizzes featuring instant answer validation, scoring, and in-depth explanations.
+* **Grounded Transcript Chat**: Multi-turn conversational assistant grounded directly in the video transcript with suggested follow-up questions. Ask questions like *"Explain this concept simply"*, *"Give a practical code example"*, or *"What did the instructor say about X?"*.
+* **Active-Recall Flashcards**: Interactive 3D flip card viewer with question/answer recall, shuffle, progress tracker, difficulty tags, and Markdown export.
+* **Multiple-Choice Quiz**: Test comprehension with automated 5–10 question quizzes featuring instant answer validation, scoring, percentage grade, and in-depth explanations.
 * **Smart Caching**: AI summaries, flashcards, and quizzes are automatically cached in IndexedDB so you never make duplicate API calls.
 
 ### 📝 3. Timestamped Study Notes
@@ -65,7 +67,7 @@ FloatTube AI is a production-grade Chromium Extension (Manifest V3) that combine
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>K</kbd> | **Play / Pause** | Toggle video playback |
 | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Y</kbd> | **Open Workspace** | Open the FloatTube AI Side Panel study workspace |
 
-*Shortcuts can be customized at `chrome://extensions/shortcuts`.*
+*Shortcuts can be customized anytime at `chrome://extensions/shortcuts`.*
 
 ---
 
@@ -75,11 +77,14 @@ FloatTube AI is a production-grade Chromium Extension (Manifest V3) that combine
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/floattube-ai.git
-cd floattube-ai
+git clone https://github.com/Babul-Kumar/-FloatTube-AI.git
+cd -FloatTube-AI
 
 # Install dependencies
 npm install
+
+# Run automated test suite
+npm test
 
 # Build production extension bundle
 npm run build
@@ -96,7 +101,7 @@ npm run build
 
 1. Click the FloatTube AI extension icon in your Chrome toolbar -> click the **⚙️ Settings** tab (or right-click the extension icon -> **Options**).
 2. Enter your **Google Gemini API Key**. (Get a free key at [Google AI Studio](https://aistudio.google.com/app/apikey)).
-3. Click **Save Key** and optionally test the connection using the **🔌 Test** button.
+3. Click **Save Key** and test the connection using the **🔌 Test** button. FloatTube AI will automatically detect your project's enabled model (e.g. `gemini-2.0-flash` or `gemini-2.5-flash`).
 
 ---
 
@@ -105,6 +110,22 @@ npm run build
 * **Local Storage Only**: Your Gemini API key is stored locally in Chrome's encrypted extension storage (`chrome.storage.sync` / `chrome.storage.local`).
 * **Zero Telemetry**: Keys and study notes are never transmitted to any third-party server.
 * **Direct Official Endpoints**: All AI requests are made directly from your browser to Google's official Gemini REST API (`generativelanguage.googleapis.com`).
+
+---
+
+## 🧪 Automated Testing
+
+FloatTube AI includes automated unit and integration tests powered by Vitest:
+
+```bash
+# Run all unit and integration tests
+npm test
+```
+
+### Test Coverage
+* `tests/storage.test.ts`: Notes CRUD, Bookmarks CRUD, AI Cache hashing and multi-video isolation in IndexedDB.
+* `tests/gemini.test.ts`: JSON stripping, markdown code fence recovery, prompt builders, and transcript formatting.
+* `tests/providers.test.ts`: Provider detection and URL matching across YouTube, Udemy, Coursera, Skillshare, Netflix, Prime Video, and generic HTML5.
 
 ---
 
@@ -132,7 +153,7 @@ src/
 │   ├── ai/
 │   │   ├── types.ts             # AI data contracts (Summary, Flashcard, Quiz, Chat)
 │   │   ├── prompts.ts           # Structured prompt builders
-│   │   ├── gemini.ts            # Google Gemini REST client & JSON parser
+│   │   ├── gemini.ts            # Google Gemini REST client, model discovery & parser
 │   │   └── aiService.ts         # High-level AI orchestrator & cache manager
 │   └── transcript.ts            # Subtitle parser & WebVTT extractor
 ├── storage/
